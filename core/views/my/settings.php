@@ -80,7 +80,7 @@ if ( $session->hasFlash('editProfileNG') ) {
         <div class="form-group row">
             <label class="col-form-label col-sm-3 text-sm-right"><?php echo Yii::t('app', 'Username'); ?></label>
             <div class="col-sm-9">
-                <strong class="form-control bg-light"><?php echo $me->username; ?></strong>
+                <strong class="form-control bg-light"><?php echo Html::encode($me->username); ?></strong>
             </div>
         </div>
         <div class="form-group row">

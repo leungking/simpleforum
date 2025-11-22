@@ -40,7 +40,7 @@ $formatter = Yii::$app->getFormatter();
         <div class="form-group row">
             <label class="col-form-label col-sm-3 text-sm-right"><?php echo Yii::t('app', 'Username'); ?></label>
             <div class="col-sm-9">
-                <strong class="form-control bg-light"><?php echo $user->username; ?></strong>
+                <strong class="form-control bg-light"><?php echo Html::encode($user->username); ?></strong>
             </div>
         </div>
         <div class="form-group row">
