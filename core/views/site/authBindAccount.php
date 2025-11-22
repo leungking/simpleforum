@@ -37,9 +37,9 @@ $this->title = Yii::t('app', 'Bind your account');
         </div>
         <div class="form-group row">
             <label class="col-form-label col-sm-3 text-sm-right"><?php echo Yii::t('app', 'Username'); ?></label>
-            <div class="col-sm-9" style="padding-top:7px;">
-                <strong><?php echo $authInfo['username']; ?></strong>
-            </div>
+                <div class="col-sm-9" style="padding-top:7px;">
+                	<strong><?php echo Html::encode($authInfo['username']); ?></strong>
+            	</div>
         </div>
         <div class="form-group row">
             <label class="col-form-label col-sm-3 text-sm-right"><?php echo Yii::t('app', 'Don\'t have an account?'); ?></label>

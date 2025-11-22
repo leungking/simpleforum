@@ -11,7 +11,7 @@ use app\components\SfHtml;
 use app\models\Favorite;
 use app\models\User;
 
-$this->title = $user['name'].'(@'.$user['username'].')';
+$this->title = Html::encode($user['name']) . '(@' . Html::encode($user['username']) . ')';
 $settings = Yii::$app->params['settings'];
 $editorClass = Yii::$app->params['plugins'][$settings['editor']]['class'];
 $editor = new $editorClass();
@@ -46,7 +46,7 @@ if (!$isGuest && $me->isActive() && $me->id != $user['id']) {
         </div>
         <div class="media-body">
             <span class="fr"><?php echo implode(' ', $userOp); ?></span>
-            <h2 class="media-heading"><?php echo $user['name'], '<br /><small class="gray">@', $user['username'], '</small><small>', SfHtml::uGroup($user['score']), '</small>'; ?></h2>
+            <h2 class="media-heading"><?php echo SfHtml::uLink($user['username'], $user['name'], '<br />'), '<small>', SfHtml::uGroup($user['score']), '</small>'; ?></h2>
             <p class="gray"><i class="fas fa-calendar-alt" aria-hidden="true"></i> <?php echo Yii::t('app', 'The {n, plural, =1{#st} =2{#nd} =3{#rd} other{#th}} member, joined on {date}.', ['n'=>$user['id'], 'date'=>$fomatter->asDate($user['created_at'], 'y-MM-dd')]); ?>
             </p>
         </div>
@@ -60,7 +60,7 @@ if (!$isGuest && $me->isActive() && $me->id != $user['id']) {
 </div>
 
 <ul class="list-group sf-box sf-box-topics">
-    <li class="list-group-item sf-box-header"><?php echo Yii::t('app', '{username}\'s Latest Topics', ['username'=>$user['username']]); ?></li>
+    <li class="list-group-item sf-box-header"><?php echo Yii::t('app', '{username}\'s Latest Topics', ['username'=>Html::encode($user['username'])]); ?></li>
 <?php
 foreach($user['topics'] as $topic){
     echo '<li class="list-group-item">
@@ -86,13 +86,13 @@ foreach($user['topics'] as $topic){
 }
 ?>
     <li class="list-group-item">
-        » <?php echo Html::a(Yii::t('app', '{username}\'s All Topics', ['username'=>$user['username']]), ['topics', 'username'=>$user['username']]); ?>
+        » <?php echo Html::a(Yii::t('app', '{username}\'s All Topics', ['username'=>Html::encode($user['username'])]), ['topics', 'username'=>$user['username']]); ?>
     </li>
 </ul>
 
 <ul class="list-group sf-box sf-box-comments">
     <li class="list-group-item sf-box-header">
-        <?php echo Yii::t('app', '{username}\'s Latest Comments', ['username'=>$user['username']]); ?>
+        <?php echo Yii::t('app', '{username}\'s Latest Comments', ['username'=>Html::encode($user['username'])]); ?>
     </li>
 <?php
 foreach($user['comments'] as $comment) :
@@ -119,7 +119,7 @@ foreach($user['comments'] as $comment) :
     </li>
 <?php endforeach; ?>
     <li class="list-group-item">
-        » <?php echo Html::a(Yii::t('app', '{username}\'s All Comments', ['username'=>$user['username']]), ['comments', 'username'=>$user['username']]); ?>
+        » <?php echo Html::a(Yii::t('app', '{username}\'s All Comments', ['username'=>Html::encode($user['username'])]), ['comments', 'username'=>$user['username']]); ?>
     </li>
 </ul>
 

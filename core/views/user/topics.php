@@ -9,7 +9,7 @@ use yii\helpers\Html;
 use yii\widgets\LinkPager;
 use app\components\SfHtml;
 
-$this->title = Yii::t('app', '{username}\'s All Topics', ['username'=>$user['username']]);
+$this->title = Yii::t('app', '{username}\'s All Topics', ['username'=>Html::encode($user['username'])]);
 $settings = Yii::$app->params['settings'];
 $formatter = Yii::$app->getFormatter();
 

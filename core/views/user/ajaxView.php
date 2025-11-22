@@ -9,7 +9,7 @@ use yii\helpers\Html;
 use app\models\Favorite;
 use app\components\SfHtml;
 
-$this->title = $user['username'];
+$this->title = Html::encode($user['username']);
 $settings = Yii::$app->params['settings'];
 
 $fomatter = Yii::$app->getFormatter();

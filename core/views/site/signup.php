@@ -48,7 +48,7 @@ if ($model->action === SignupForm::ACTION_AUTH_SIGNUP) {
         <div class="form-group row">
             <label class="control-label col-sm-3 text-sm-right"><?php echo Yii::t('app', 'Username'); ?></label>
             <div class="col-sm-9">
-                <strong><?php echo $authInfo['username']; ?></strong>
+                <strong><?php echo Html::encode($authInfo['username']); ?></strong>
             </div>
         </div>
         <div class="form-group row">

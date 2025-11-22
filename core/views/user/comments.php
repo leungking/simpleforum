@@ -11,7 +11,7 @@ use yii\bootstrap4\Alert;
 use app\components\SfHtml;
 use app\models\User;
 
-$this->title = Yii::t('app', '{username}\'s All Comments', ['username'=>$user['username']]);
+$this->title = Yii::t('app', '{username}\'s All Comments', ['username'=>Html::encode($user['username'])]);
 $formatter = Yii::$app->getFormatter();
 $settings = Yii::$app->params['settings'];
 
