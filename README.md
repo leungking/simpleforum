@@ -1,5 +1,5 @@
 **DEMO：**
-https://Lu.La
+https://
 
 **介绍：**
 
@@ -35,7 +35,7 @@ https://Lu.La
 7. 管理员帐号创建后，安装操作就完成了。
 
 **帮助文档：**
-
+以下链接已失效：
 1. Nginx配置 https://simpleforum.org/t/23
 1. SMTP服务器设置 https://simpleforum.org/t/24
 1. 开启验证码 https://simpleforum.org/t/25
