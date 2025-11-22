@@ -21,6 +21,7 @@ $whiteWrapClass = $settings['editor']=='SmdEditor'?'white-wrap':'';
 $fomatter = Yii::$app->getFormatter();
 $isGuest = Yii::$app->getUser()->getIsGuest();
 if (!$isGuest) {
+    /** @var User $me */
     $me = Yii::$app->getUser()->getIdentity();
 }
 

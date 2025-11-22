@@ -48,7 +48,7 @@ class Topic extends ActiveRecord
     {
         return [
             [
-                'class' => TimestampBehavior::className(),
+                'class' => TimestampBehavior::class,
                 'attributes' => [
                     ActiveRecord::EVENT_BEFORE_INSERT => ['created_at', 'updated_at', 'replied_at'],
                     ActiveRecord::EVENT_BEFORE_UPDATE => ['updated_at'],
@@ -103,7 +103,7 @@ class Topic extends ActiveRecord
 
     public function getNode()
     {
-        return $this->hasOne(Node::className(), ['id' => 'node_id'])
+        return $this->hasOne(Node::class, ['id' => 'node_id'])
             ->select(['id', 'ename', 'name', 'access_auth']);
     }
 
@@ -118,55 +118,55 @@ class Topic extends ActiveRecord
 
     public function getTopic()
     {
-        return $this->hasOne(self::className(), ['id' => 'id'])
+        return $this->hasOne(self::class, ['id' => 'id'])
             ->select(['id', 'node_id', 'user_id', 'reply_id', 'replied_at', 'comment_count', 'alltop', 'top', 'comment_closed', 'access_auth','title']);
     }
 
     public function getContent()
     {
-        return $this->hasOne(TopicContent::className(), ['topic_id' => 'id'])
+        return $this->hasOne(TopicContent::class, ['topic_id' => 'id'])
             ->select(['topic_id', 'content']);
     }
 
     public function getAuthor()
     {
-        return $this->hasOne(User::className(), ['id' => 'user_id'])
+        return $this->hasOne(User::class, ['id' => 'user_id'])
             ->select(['id', 'username', 'status', 'avatar', 'score', 'comment', 'name']);
     }
 
     public function getLastReply()
     {
-        return $this->hasOne(User::className(), ['id' => 'reply_id'])
+        return $this->hasOne(User::class, ['id' => 'reply_id'])
             ->select(['id', 'username']);
     }
 
     public function getNaviNode()
     {
-        return $this->hasOne(NaviNode::className(), ['node_id' => 'node_id'])
+        return $this->hasOne(NaviNode::class, ['node_id' => 'node_id'])
             ->select(['id', 'node_id']);
     }
 
 /*
     public function getTopicTags()
     {
-        return $this->hasMany(Tag::className(), ['id' => 'tag_id'])
+        return $this->hasMany(Tag::class, ['id' => 'tag_id'])
             ->viaTable(TagTopic::tableName(), ['topic_id' => 'id']);
     }
 */
 
     public function getComments()
     {
-        return $this->hasMany(Comment::className(), ['topic_id' => 'id']);
+        return $this->hasMany(Comment::class, ['topic_id' => 'id']);
     }
 
     public function getFavorites()
     {
-        return $this->hasMany(Favorite::className(), ['target_id' => 'id'])->onCondition([Favorite::tableName().'.type'=>Favorite::TYPE_TOPIC]);
+        return $this->hasMany(Favorite::class, ['target_id' => 'id'])->onCondition([Favorite::tableName().'.type'=>Favorite::TYPE_TOPIC]);
     }
 
     public function getAuthorFollowedBy()
     {
-        return $this->hasMany(Favorite::className(), ['target_id' => 'user_id']);
+        return $this->hasMany(Favorite::class, ['target_id' => 'user_id']);
     }
 
     public static function getRedirectUrl($tid, $position=0, $ip=1, $np=1)

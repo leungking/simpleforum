@@ -34,13 +34,13 @@ class TagTopic extends ActiveRecord
 
 	public function getTopic()
     {
-        return $this->hasOne(Topic::className(), ['id' => 'topic_id'])
+		return $this->hasOne(Topic::class, ['id' => 'topic_id'])
 				->select(['id', 'node_id', 'user_id', 'reply_id', 'replied_at', 'comment_count', 'title']);
     }
 
 	public function getTag()
     {
-        return $this->hasOne(Tag::className(), ['id' => 'tag_id'])
+		return $this->hasOne(Tag::class, ['id' => 'tag_id'])
 				->select(['id', 'name']);
     }
 

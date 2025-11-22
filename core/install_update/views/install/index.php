@@ -7,7 +7,9 @@
 
 use yii\helpers\Html;
 
-extract($check->result);
+$res = method_exists($check,'getResult') ? $check->getResult() : [];
+$summary = isset($res['summary']) ? $res['summary'] : ['total'=>0,'errors'=>0,'warnings'=>0];
+$requirements = isset($res['requirements']) ? $res['requirements'] : [];
 
 $this->title = Yii::t('app/admin', 'Check server\'s environment');
 ?>

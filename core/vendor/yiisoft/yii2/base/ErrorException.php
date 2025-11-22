@@ -44,10 +44,10 @@ class ErrorException extends \ErrorException
     {
         parent::__construct($message, $code, $severity, $filename, $lineno, $previous);
 
-        if (function_exists('xdebug_get_function_stack')) {
+        if (\function_exists('xdebug_get_function_stack')) {
             // XDebug trace can't be modified and used directly with PHP 7
             // @see https://github.com/yiisoft/yii2/pull/11723
-            $xDebugTrace = array_slice(array_reverse(xdebug_get_function_stack()), 1, -1);
+            $xDebugTrace = array_slice(array_reverse(\xdebug_get_function_stack()), 1, -1);
             $trace = [];
             foreach ($xDebugTrace as $frame) {
                 if (!isset($frame['function'])) {
@@ -68,9 +68,12 @@ class ErrorException extends \ErrorException
                 $trace[] = $frame;
             }
 
-            $ref = new \ReflectionProperty('Exception', 'trace');
-            $ref->setAccessible(true);
-            $ref->setValue($this, $trace);
+            $setter = \Closure::bind(function ($exception, $stack) {
+                $exception->trace = $stack;
+            }, null, \Exception::class);
+            if ($setter !== false) {
+                $setter($this, $trace);
+            }
         }
     }
 
@@ -100,7 +103,6 @@ class ErrorException extends \ErrorException
             E_NOTICE => 'PHP Notice',
             E_PARSE => 'PHP Parse Error',
             E_RECOVERABLE_ERROR => 'PHP Recoverable Error',
-            E_STRICT => 'PHP Strict Warning',
             E_USER_DEPRECATED => 'PHP User Deprecated Warning',
             E_USER_ERROR => 'PHP User Error',
             E_USER_NOTICE => 'PHP User Notice',
@@ -108,6 +110,8 @@ class ErrorException extends \ErrorException
             E_WARNING => 'PHP Warning',
             self::E_HHVM_FATAL_ERROR => 'HHVM Fatal Error',
         ];
+
+        $names[2048] = 'PHP Strict Warning';
 
         return isset($names[$this->getCode()]) ? $names[$this->getCode()] : 'Error';
     }

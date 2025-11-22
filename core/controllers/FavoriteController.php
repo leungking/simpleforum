@@ -15,7 +15,7 @@ use app\models\User;
 use app\models\Topic;
 use app\models\Notice;
 use app\models\Favorite;
-use app\lib\Util;
+use app\components\Util;
 
 class FavoriteController extends AppController
 {
@@ -23,13 +23,13 @@ class FavoriteController extends AppController
     {
         return [
             'verbs' => [
-                'class' => VerbFilter::className(),
+                'class' => VerbFilter::class,
                 'actions' => [
                     'cancel' => ['post'],
                 ],
             ],
             'access' => [
-                'class' => AccessControl::className(),
+                'class' => AccessControl::class,
                 'rules' => [
                     [
                         'allow' => true,

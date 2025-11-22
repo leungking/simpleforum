@@ -109,8 +109,8 @@ abstract class Cache extends Component implements CacheInterface
         if (is_string($key)) {
             $key = ctype_alnum($key) && StringHelper::byteLength($key) <= 32 ? $key : md5($key);
         } else {
-            if ($this->_igbinaryAvailable) {
-                $serializedKey = igbinary_serialize($key);
+            if ($this->_igbinaryAvailable && \function_exists('igbinary_serialize')) {
+                $serializedKey = \call_user_func('igbinary_serialize', $key);
             } else {
                 $serializedKey = serialize($key);
             }
@@ -520,7 +520,7 @@ abstract class Cache extends Component implements CacheInterface
      * @param string $key a key identifying the cached value
      * @return bool
      */
-    public function offsetExists($key)
+    public function offsetExists($key): bool
     {
         return $this->get($key) !== false;
     }
@@ -531,7 +531,7 @@ abstract class Cache extends Component implements CacheInterface
      * @param string $key a key identifying the cached value
      * @return mixed the value stored in cache, false if the value is not in the cache or expired.
      */
-    public function offsetGet($key)
+    public function offsetGet($key): mixed
     {
         return $this->get($key);
     }
@@ -544,7 +544,7 @@ abstract class Cache extends Component implements CacheInterface
      * @param string $key the key identifying the value to be cached
      * @param mixed $value the value to be cached
      */
-    public function offsetSet($key, $value)
+    public function offsetSet($key, $value): void
     {
         $this->set($key, $value);
     }
@@ -554,7 +554,7 @@ abstract class Cache extends Component implements CacheInterface
      * This method is required by the interface [[\ArrayAccess]].
      * @param string $key the key of the value to be deleted
      */
-    public function offsetUnset($key)
+    public function offsetUnset($key): void
     {
         $this->delete($key);
     }

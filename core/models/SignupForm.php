@@ -38,7 +38,11 @@ class SignupForm extends Model
     public function rules()
     {
         $rules = [
-            [['username', 'email', 'name', 'invite_code'], 'trim'],
+            [
+                ['username', 'email', 'name', 'invite_code'],
+                'filter',
+                'filter' => function($value){ return $value === null ? '' : trim($value); }
+            ],
             [['username', 'email', 'name', 'password', 'password_repeat'], 'required'],
             [['username', 'email'], 'filter', 'filter' => 'strtolower'],
             ['username', 'match', 'pattern' => User::USERNAME_PATTERN, 'message' => Yii::t('app', 'Your username can only contain letters, numbers and \'_\'.')],
@@ -80,14 +84,19 @@ class SignupForm extends Model
 
     public function usernameFilter($attribute, $params)
     {
-        if( empty(Yii::$app->params['settings']['username_filter']) ) {
+        $value = $this->$attribute;
+        if ($value === null || $value === '') {
+            return; // let required/length validators handle empties
+        }
+        $setting = Yii::$app->params['settings']['username_filter'] ?? '';
+        if ($setting === '') {
             return;
         }
-        $filters = explode(',', Yii::$app->params['settings']['username_filter']);
-        foreach($filters as $filter) {
-            $pattern = str_replace('*', '.*', $filter);
-            $result = preg_match('/^' . $pattern . '$/is', $this->$attribute);
-            if ( !empty($result) ) {
+        $filters = array_filter(array_map('trim', explode(',', $setting)), function($f){return $f !== '';});
+        if (empty($filters)) {return;}
+        foreach ($filters as $filter) {
+            $pattern = str_replace('*', '.*', preg_quote($filter, '/'));
+            if (@preg_match('/^' . $pattern . '$/i', (string)$value)) {
                 $this->addError($attribute, Yii::t('app', '{attribute} cannot contain "{value}".', ['attribute'=>Yii::t('app', 'Username'), 'value'=>str_replace('*', '', $filter)]));
                 return;
             }
@@ -96,14 +105,19 @@ class SignupForm extends Model
 
     public function nameFilter($attribute, $params)
     {
-        if( empty(Yii::$app->params['settings']['name_filter']) ) {
+        $value = $this->$attribute;
+        if ($value === null || $value === '') {
             return;
         }
-        $filters = explode(',', Yii::$app->params['settings']['name_filter']);
-        foreach($filters as $filter) {
-            $pattern = str_replace('*', '.*', $filter);
-            $result = preg_match('/^' . $pattern . '$/is', $this->$attribute);
-            if ( !empty($result) ) {
+        $setting = Yii::$app->params['settings']['name_filter'] ?? '';
+        if ($setting === '') {
+            return;
+        }
+        $filters = array_filter(array_map('trim', explode(',', $setting)), function($f){return $f !== '';});
+        if (empty($filters)) {return;}
+        foreach ($filters as $filter) {
+            $pattern = str_replace('*', '.*', preg_quote($filter, '/'));
+            if (@preg_match('/^' . $pattern . '$/i', (string)$value)) {
                 $this->addError($attribute, Yii::t('app', '{attribute} cannot contain "{value}".', ['attribute'=>Yii::t('app', 'Name'), 'value'=>str_replace('*', '', $filter)]));
                 return;
             }

@@ -16,12 +16,13 @@ https://Lu.La
 
 **空间及环境要求：**
 
-1. PHP 5.4.0及以上
-2. 必须安装open_ssl扩展
-3. 插件系统需要用到scandir方法，如php.ini中disable_functions设置屏蔽掉了这个方法，请删除后重启。
-4. core/config目录下db.php,params.php,plugins.php,web.php文件要求写权限
-5. core/runtime目录及里面的目录文件要有写权限
-6. 根目录下的assets目录，avatar目录和upload目录要求写权限
+1. PHP 8.0.0及以上
+2. MySQL 5.7.0及以上
+3. 必须安装open_ssl扩展
+4. 插件系统需要用到scandir方法，如php.ini中disable_functions设置屏蔽掉了这个方法，请删除后重启。
+5. core/config目录下db.php,params.php,plugins.php,web.php文件要求写权限
+6. core/runtime目录及里面的目录文件要有写权限
+7. 根目录下的assets目录，avatar目录和upload目录要求写权限
 
 **安装步骤：**
 
@@ -51,3 +52,9 @@ https://Lu.La
 1. 启用https的方法 https://simpleforum.org/t/20
 1. 网址后缀加上.html的方法 https://simpleforum.org/t/56
 1. 自定义主题式样（配色）https://simpleforum.org/t/85
+
+**测试脚本：**
+
+- CLI 端到端与注册探针脚本已移至 `tools/tests/`，不会通过 Web 暴露。
+- 运行端到端测试：`php tools/tests/e2e.php`（需要先配置数据库，自动写入 `core/runtime/e2e_report.json`）。
+- 运行注册探针：`php tools/tests/signup_probe.php`，结果会输出到 `core/runtime/signup_probe.json`。

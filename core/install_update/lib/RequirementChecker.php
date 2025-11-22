@@ -48,6 +48,11 @@ namespace app\install_update\lib;
 class RequirementChecker
 {
     /**
+     * @var array|null cached requirement evaluation result
+     */
+    public $result;
+
+    /**
      * Check the given requirements, collecting results into internal field.
      * This method can be invoked several times checking different requirement sets.
      * Use [[getResult()]] or [[render()]] to get the results.
@@ -385,6 +390,6 @@ class RequirementChecker
      */
     function getNowDate()
     {
-        return @strftime('%Y-%m-%d %H:%M', time());
+        return date('Y-m-d H:i');
     }
 }

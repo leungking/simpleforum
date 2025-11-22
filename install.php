@@ -10,8 +10,8 @@ define('SF_PATH', __DIR__.'/' . SF_DIR);
 
 header("Content-Type: text/html; charset=UTF-8");
 
-if (version_compare(PHP_VERSION, '5.4.0', '<')) {
-    echo 'php版本过低，请先安装php5.4.0以上版本';
+if (version_compare(PHP_VERSION, '8.0.0', '<')) {
+    echo 'PHP版本过低，请先安装PHP 8.0.0及以上版本';
     exit;
 }
 

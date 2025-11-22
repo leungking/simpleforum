@@ -159,8 +159,11 @@ class UploadForm extends Model
             $myId = strtolower(Util::shorturl($uid));
             $savePath = 'avatar/'.substr($myId,0,1).'/'.substr($myId,1,1);
 			$filePath = $savePath. '/'.$name . '_{size}.' . $suffix;
-            $this->_uploader->uploadThumbnails($this->file->tempName, $filePath, $type);
-            return $filePath . '?m='.time();
+            $ok = $this->_uploader->uploadThumbnails($this->file->tempName, $filePath, $type);
+            if ($ok) {
+                return $filePath . '?m='.time();
+            }
+            return false;
         }
 
         return false;

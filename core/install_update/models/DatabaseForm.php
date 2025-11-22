@@ -8,6 +8,7 @@
 namespace app\install_update\models;
 
 use Yii;
+use yii\base\InvalidConfigException;
 use yii\base\Model;
 use app\components\Util;
 
@@ -59,11 +60,18 @@ class DatabaseForm extends Model
             'charset' => 'utf8mb4',
         ];
         $db = new \yii\db\Connection($this->_dbConfig);
-//      try {
-            $db->open();
-//      } catch (\yii\db\Exception $e) {
-//          throw new \yii\base\InvalidParamException(Yii::t('app/admin', Error establishing a database connection: Please confirm database settings.) . '<br />' . $e->getMessage());
-//      }
+        $db->open();
+
+        $versionString = $db->createCommand('SELECT VERSION()')->queryScalar();
+        if ($versionString !== false) {
+            $normalizedVersion = preg_replace('/[^0-9.]/', '', (string) $versionString);
+            $normalizedVersion = $normalizedVersion === '' ? (string) $versionString : $normalizedVersion;
+
+            if (version_compare($normalizedVersion, '5.7.0', '<')) {
+                throw new InvalidConfigException(Yii::t('app/admin', 'MySQL 5.7.0 or higher is required.') . ' (' . $versionString . ')');
+            }
+        }
+
         return $db;
     }
 

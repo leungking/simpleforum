@@ -35,13 +35,13 @@ class SiteController extends AppController
     {
         return [
             'verbs' => [
-                'class' => VerbFilter::className(),
+                'class' => VerbFilter::class,
                 'actions' => [
                     'logout' => ['post'],
                 ],
             ],
             'access' => [
-                'class' => AccessControl::className(),
+                'class' => AccessControl::class,
                 'only' => ['logout', 'signup', 'forgot-password', 'reset-password'],
                 'rules' => [
                     [

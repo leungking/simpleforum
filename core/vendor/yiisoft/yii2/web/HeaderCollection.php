@@ -34,7 +34,7 @@ class HeaderCollection extends BaseObject implements \IteratorAggregate, \ArrayA
      * It will be implicitly called when you use `foreach` to traverse the collection.
      * @return \ArrayIterator an iterator for traversing the headers in the collection.
      */
-    public function getIterator()
+    public function getIterator(): \ArrayIterator
     {
         return new \ArrayIterator($this->_headers);
     }
@@ -45,7 +45,7 @@ class HeaderCollection extends BaseObject implements \IteratorAggregate, \ArrayA
      * It will be implicitly called when you use `count($collection)`.
      * @return int the number of headers in the collection.
      */
-    public function count()
+    public function count(): int
     {
         return $this->getCount();
     }
@@ -190,7 +190,7 @@ class HeaderCollection extends BaseObject implements \IteratorAggregate, \ArrayA
      * @param string $name the header name
      * @return bool whether the named header exists
      */
-    public function offsetExists($name)
+    public function offsetExists($name): bool
     {
         return $this->has($name);
     }
@@ -203,7 +203,7 @@ class HeaderCollection extends BaseObject implements \IteratorAggregate, \ArrayA
      * @param string $name the header name
      * @return string the header value with the specified name, null if the named header does not exist.
      */
-    public function offsetGet($name)
+    public function offsetGet($name): mixed
     {
         return $this->get($name);
     }
@@ -216,7 +216,7 @@ class HeaderCollection extends BaseObject implements \IteratorAggregate, \ArrayA
      * @param string $name the header name
      * @param string $value the header value to be added
      */
-    public function offsetSet($name, $value)
+    public function offsetSet($name, $value): void
     {
         $this->set($name, $value);
     }
@@ -228,7 +228,7 @@ class HeaderCollection extends BaseObject implements \IteratorAggregate, \ArrayA
      * This is equivalent to [[remove()]].
      * @param string $name the header name
      */
-    public function offsetUnset($name)
+    public function offsetUnset($name): void
     {
         $this->remove($name);
     }

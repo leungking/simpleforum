@@ -26,7 +26,7 @@ class MyController extends AppController
     {
         return [
             'access' => [
-                'class' => AccessControl::className(),
+                'class' => AccessControl::class,
                 'rules' => [
                     [
                         'allow' => true,
@@ -43,6 +43,7 @@ class MyController extends AppController
             throw new NotFoundHttpException(Yii::t('app', 'Parameter error'));
         }
 
+        /** @var \app\models\User $me */
         $me = Yii::$app->getUser()->getIdentity();
 //        $myId = Yii::$app->getUser()->id;
         $sysCount = $me->getSystemNoticeCount();
@@ -122,6 +123,7 @@ class MyController extends AppController
 
     public function actionNodes()
     {
+        /** @var \app\models\User $me */
         $me = Yii::$app->getUser()->getIdentity();
 
         $query = Favorite::find()->where(['type'=>Favorite::TYPE_NODE, 'source_id'=>$me->id]);
@@ -141,6 +143,7 @@ class MyController extends AppController
 
     public function actionTopics()
     {
+        /** @var \app\models\User $me */
         $me = Yii::$app->getUser()->getIdentity();
 
         $query = Favorite::find()->where(['type'=>Favorite::TYPE_TOPIC, 'source_id'=>$me->id]);

@@ -7,6 +7,8 @@
 
 namespace app\controllers;
 
+use Yii;
+
 use yii\web\NotFoundHttpException;
 use yii\data\Pagination;
 use app\models\Tag;

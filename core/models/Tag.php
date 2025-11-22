@@ -28,7 +28,7 @@ class Tag extends ActiveRecord
     {
         return [
             [
-                'class' => TimestampBehavior::className(),
+				'class' => TimestampBehavior::class,
                 'attributes' => [
                     ActiveRecord::EVENT_BEFORE_INSERT => ['created_at', 'updated_at'],
                     ActiveRecord::EVENT_BEFORE_UPDATE => ['updated_at'],
@@ -62,7 +62,7 @@ class Tag extends ActiveRecord
 
 	public function getTopics()
     {
-        return $this->hasMany(Topic::className(), ['id' => 'topic_id'])
+		return $this->hasMany(Topic::class, ['id' => 'topic_id'])
 			->viaTable(TagTopic::tableName(), ['tag_id' => 'id']);
     }
 

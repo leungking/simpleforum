@@ -56,6 +56,7 @@ $RECYCLE.BIN/
 .project
 .settings
 
+
 # data
 /assets
 avatar
@@ -66,3 +67,12 @@ upload
 /core/config/db.php
 /core/config/params.php
 /core/config/plugins.php
+.tmp_run.php
+.gitignore
+README.md
+.vscode/settings.json
+core/.stubs/intelephense.php
+tools/config/test-db.template.php
+tools/tests/e2e.php
+tools/tests/signup_probe.php
+README.md

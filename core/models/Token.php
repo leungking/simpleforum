@@ -8,7 +8,7 @@
 namespace app\models;
 
 use Yii;
-use yii\base\InvalidParamException;
+use yii\base\InvalidArgumentException;
 use yii\db\ActiveRecord;
 use yii\behaviors\TimestampBehavior;
 use app\components\Util;
@@ -34,7 +34,7 @@ class Token extends ActiveRecord
     {
         return [
             [
-                'class' => TimestampBehavior::className(),
+                'class' => TimestampBehavior::class,
                 'attributes' => [
                     ActiveRecord::EVENT_BEFORE_INSERT => ['created_at', 'updated_at'],
                     ActiveRecord::EVENT_BEFORE_UPDATE => ['updated_at'],
@@ -45,7 +45,7 @@ class Token extends ActiveRecord
 
     public function getUser()
     {
-        return $this->hasOne(User::className(), ['id' => 'user_id'])
+        return $this->hasOne(User::class, ['id' => 'user_id'])
             ->select(['id', 'username', 'status', 'email']);
     }
 
@@ -57,17 +57,17 @@ class Token extends ActiveRecord
     public static function findByToken($token, $type=self::TYPE_PWD)
     {
         if (empty($token) || !is_string($token)) {
-            throw new InvalidParamException(Yii::t('app', 'Parameter error'));
+            throw new InvalidArgumentException(Yii::t('app', 'Parameter error'));
         }
 
        $model = static::find()->where(['token'=>$token])->with(['user'])->one();
 
         if (!$model || $model->type != $type) {
-            throw new InvalidParamException(Yii::t('app', 'Parameter error'));
+            throw new InvalidArgumentException(Yii::t('app', 'Parameter error'));
         } else if ( $model->status == self::STATUS_VALID && $model->expires > 0 && $model->expires < time() || !$model->user ) {
-            throw new InvalidParamException(Yii::t('app', 'The token has expired. Please apply again.'));
+            throw new InvalidArgumentException(Yii::t('app', 'The token has expired. Please apply again.'));
         } else if ($model->status == self::STATUS_USED ) {
-            throw new InvalidParamException(Yii::t('app', 'The token was used.'));
+            throw new InvalidArgumentException(Yii::t('app', 'The token was used.'));
         }
         return $model;
     }

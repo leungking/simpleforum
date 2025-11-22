@@ -15,9 +15,9 @@ return array(
     array(
         'name' => 'PHP version',
         'mandatory' => true,
-        'condition' => version_compare(PHP_VERSION, '5.4.0', '>='),
+        'condition' => version_compare(PHP_VERSION, '8.0.0', '>='),
         'by' => '<a href="http://www.yiiframework.com">Yii Framework</a>',
-        'memo' => 'PHP 5.4.0 or higher is required.',
+        'memo' => 'PHP 8.0.0 or higher is required.',
     ),
     array(
         'name' => 'Reflection extension',
@@ -46,7 +46,7 @@ return array(
     array(
         'name' => 'MBString extension',
         'mandatory' => true,
-        'condition' => extension_loaded('mbstring'),
+        'condition' => extension_loaded('mbstring') || function_exists('mb_strlen'),
         'by' => '<a href="https://secure.php.net/manual/en/book.mbstring.php">Multibyte string</a> processing',
         'memo' => 'Required for multibyte encoding string processing.'
     ),

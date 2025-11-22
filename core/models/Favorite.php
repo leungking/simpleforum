@@ -57,24 +57,24 @@ class Favorite extends \yii\db\ActiveRecord
 
 	public function getNode()
     {
-        return $this->hasOne(Node::className(), ['id' => 'target_id'])
+		return $this->hasOne(Node::class, ['id' => 'target_id'])
 			->select(['id', 'ename', 'name']);
     }
 
 	public function getTopic()
     {
-        return $this->hasOne(Topic::className(), ['id' => 'target_id'])
+		return $this->hasOne(Topic::class, ['id' => 'target_id'])
 			->select(['id', 'node_id', 'user_id', 'reply_id', 'title', 'comment_count', 'replied_at', 'comment_closed']);
     }
 
 	public function getFollowingTopic()
     {
-        return $this->hasOne(Topic::className(), ['user_id' => 'target_id']);
+		return $this->hasOne(Topic::class, ['user_id' => 'target_id']);
     }
 
 	public function getFollowing()
     {
-        return $this->hasOne(User::className(), ['id' => 'target_id']);
+		return $this->hasOne(User::class, ['id' => 'target_id']);
     }
 
 	public static function add($favorite)

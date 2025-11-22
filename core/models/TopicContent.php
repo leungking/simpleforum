@@ -43,13 +43,13 @@ class TopicContent extends ActiveRecord
 
     public function getTopic()
     {
-        return $this->hasOne(Topic::className(), ['id' => 'topic_id'])
+        return $this->hasOne(Topic::class, ['id' => 'topic_id'])
             ->select(['created_at', 'user_id', 'node_id', 'title', 'tags']);
     }
-
     public function afterSave($insert, $changedAttributes)
     {
         if ($insert === true) {
+            /** @var \app\models\User $me */
             $me = Yii::$app->getUser()->getIdentity();
             $cost = User::getCost('addTopic');
             $me->updateScore($cost);

@@ -28,7 +28,7 @@ class RangeNotSatisfiableHttpException extends HttpException
      * @param int $code error code
      * @param \Exception $previous The previous exception used for the exception chaining.
      */
-    public function __construct($message = null, $code = 0, \Exception $previous = null)
+    public function __construct($message = null, $code = 0, ?\Throwable $previous = null)
     {
         parent::__construct(416, $message, $code, $previous);
     }

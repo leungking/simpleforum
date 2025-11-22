@@ -68,7 +68,7 @@ class Comment extends ActiveRecord
     {
         return [
             [
-                'class' => TimestampBehavior::className(),
+                'class' => TimestampBehavior::class,
                 'attributes' => [
                     ActiveRecord::EVENT_BEFORE_INSERT => ['created_at', 'updated_at'],
                     ActiveRecord::EVENT_BEFORE_UPDATE => ['updated_at'],
@@ -84,25 +84,26 @@ class Comment extends ActiveRecord
 
     public function getTopic()
     {
-        return $this->hasOne(Topic::className(), ['id' => 'topic_id'])
+        return $this->hasOne(Topic::class, ['id' => 'topic_id'])
             ->select(['id', 'created_at', 'node_id', 'user_id', 'title']);
     }
 
     public function getComment()
     {
-        return $this->hasOne(self::className(), ['id' => 'id'])
+        return $this->hasOne(self::class, ['id' => 'id'])
             ->select(['id', 'created_at', 'user_id', 'position', 'invisible', 'content']);
     }
 
     public function getAuthor()
     {
-        return $this->hasOne(User::className(), ['id' => 'user_id'])
+        return $this->hasOne(User::class, ['id' => 'user_id'])
             ->select(['id', 'username', 'avatar', 'status', 'score', 'comment', 'name']);
     }
 
     public function afterSave($insert, $changedAttributes)
     {
         if ($insert === true) {
+            /** @var \app\models\User $me */
             $me = Yii::$app->getUser()->getIdentity();
             $cost = User::getCost('addComment');
             $me->afterAddComment($cost, $this);

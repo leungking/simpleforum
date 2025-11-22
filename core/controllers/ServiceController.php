@@ -34,7 +34,7 @@ class ServiceController extends AppController
     {
         return [
             'verbs' => [
-                'class' => VerbFilter::className(),
+                'class' => VerbFilter::class,
                 'actions' => [
                     'avatar' => ['post'],
 //                    'cover' => ['post'],
@@ -47,7 +47,7 @@ class ServiceController extends AppController
                 ],
             ],
             'access' => [
-                'class' => AccessControl::className(),
+                'class' => AccessControl::class,
                 'rules' => [
                     [
                         'allow' => true,
@@ -122,6 +122,7 @@ class ServiceController extends AppController
     public function actionAvatar()
     {
         $session = Yii::$app->getSession();
+        /** @var \app\models\User $me */
         $me = Yii::$app->getUser()->getIdentity();
 
         $model = new UploadForm(Yii::$container->get('avatarUploader'), ['scenario' => UploadForm::SCENARIO_AVATAR]);
@@ -163,6 +164,7 @@ class ServiceController extends AppController
     {
         Yii::$app->getResponse()->format = Response::FORMAT_JSON;
 
+        /** @var \app\models\User $me */
         $me = Yii::$app->getUser()->getIdentity();
 
         if( !$me->canUpload($this->settings) ) {
@@ -237,7 +239,11 @@ class ServiceController extends AppController
     public function actionSignin()
     {
         if ( Yii::$app->getRequest()->getIsPost() ) {
-            Yii::$app->getUser()->getIdentity()->signin();
+            /** @var \app\models\User|null $identity */
+            $identity = Yii::$app->getUser()->getIdentity();
+            if ($identity !== null) {
+                $identity->signin();
+            }
         }
         return $this->render('signin');
 
@@ -258,6 +264,7 @@ class ServiceController extends AppController
 
     public function actionSms($id=0, $to='')
     {
+        /** @var \app\models\User $me */
         $me = Yii::$app->getUser()->getIdentity();
         if( !$me->checkActionCost('sendMsg') ) {
             return $this->render('@app/views/common/info', [
@@ -297,6 +304,7 @@ class ServiceController extends AppController
         $req = Yii::$app->getRequest();
         if ($req->getIsAjax()) {
             $data = $req->post();
+            /** @var \app\models\User $me */
             $me = Yii::$app->getUser()->getIdentity();
             Yii::$app->getResponse()->format = Response::FORMAT_JSON;
             return $me->good($data['type'], intval($data['id']), intval($data['thanks']));

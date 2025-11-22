@@ -107,7 +107,7 @@ class ArrayExpression implements ExpressionInterface, \ArrayAccess, \Countable, 
      * The return value will be casted to boolean if non-boolean was returned.
      * @since 2.0.14
      */
-    public function offsetExists($offset)
+    public function offsetExists($offset): bool
     {
         return isset($this->value[$offset]);
     }
@@ -122,7 +122,7 @@ class ArrayExpression implements ExpressionInterface, \ArrayAccess, \Countable, 
      * @return mixed Can return all value types.
      * @since 2.0.14
      */
-    public function offsetGet($offset)
+    public function offsetGet($offset): mixed
     {
         return $this->value[$offset];
     }
@@ -140,7 +140,7 @@ class ArrayExpression implements ExpressionInterface, \ArrayAccess, \Countable, 
      * @return void
      * @since 2.0.14
      */
-    public function offsetSet($offset, $value)
+    public function offsetSet($offset, $value): void
     {
         $this->value[$offset] = $value;
     }
@@ -155,7 +155,7 @@ class ArrayExpression implements ExpressionInterface, \ArrayAccess, \Countable, 
      * @return void
      * @since 2.0.14
      */
-    public function offsetUnset($offset)
+    public function offsetUnset($offset): void
     {
         unset($this->value[$offset]);
     }
@@ -170,7 +170,7 @@ class ArrayExpression implements ExpressionInterface, \ArrayAccess, \Countable, 
      * The return value is cast to an integer.
      * @since 2.0.14
      */
-    public function count()
+    public function count(): int
     {
         return count($this->value);
     }
@@ -184,7 +184,7 @@ class ArrayExpression implements ExpressionInterface, \ArrayAccess, \Countable, 
      * @since 2.0.14.1
      * @throws InvalidConfigException when ArrayExpression contains QueryInterface object
      */
-    public function getIterator()
+    public function getIterator(): Traversable
     {
         $value = $this->getValue();
         if ($value instanceof QueryInterface) {

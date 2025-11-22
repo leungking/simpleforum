@@ -47,7 +47,7 @@ class User extends ActiveRecord implements IdentityInterface
     public function behaviors()
     {
         return [
-            TimestampBehavior::className(),
+            TimestampBehavior::class,
         ];
     }
 
@@ -81,38 +81,38 @@ class User extends ActiveRecord implements IdentityInterface
 
     public function getNotices()
     {
-        return $this->hasMany(Notice::className(), ['target_id' => 'id'])
+        return $this->hasMany(Notice::class, ['target_id' => 'id'])
             ->where(['status'=>0])->orderBy(['updated_at'=>SORT_DESC]);
     }
 
     public function getAuths()
     {
-        return $this->hasMany(Auth::className(), ['user_id' => 'id'])
+        return $this->hasMany(Auth::class, ['user_id' => 'id'])
             ->orderBy(['id'=>SORT_DESC]);
     }
 
     public function getTopics()
     {
-        return $this->hasMany(Topic::className(), ['user_id' => 'id'])
+        return $this->hasMany(Topic::class, ['user_id' => 'id'])
             ->select(['id', 'node_id', 'user_id', 'reply_id', 'title', 'comment_count', 'replied_at'])
             ->limit(10)->orderBy(['id'=>SORT_DESC]);
     }
 
     public function getComments()
     {
-        return $this->hasMany(Comment::className(), ['user_id' => 'id'])
+        return $this->hasMany(Comment::class, ['user_id' => 'id'])
             ->select(['id', 'user_id', 'topic_id', 'created_at', 'invisible', 'content'])
             ->limit(10)->orderBy(['id'=>SORT_DESC]);
     }
 
     public function getUserInfo()
     {
-        return $this->hasOne(UserInfo::className(), ['user_id' => 'id']);
+        return $this->hasOne(UserInfo::class, ['user_id' => 'id']);
     }
 
     public function getLastAction($action = History::ACTION_ADD_TOPIC)
     {
-        return $this->hasOne(History::className(), ['user_id' => 'id'])
+        return $this->hasOne(History::class, ['user_id' => 'id'])
                 ->select(['action_time', 'action', 'target', 'ext'])
                 ->where(['action'=>$action])
                 ->orderBy(['action_time'=>SORT_DESC])->limit(1);
@@ -120,7 +120,7 @@ class User extends ActiveRecord implements IdentityInterface
 
     public function getAction($where)
     {
-        return $this->hasOne(History::className(), ['user_id' => 'id'])
+        return $this->hasOne(History::class, ['user_id' => 'id'])
                 ->select(['action_time', 'action', 'target', 'ext'])
                 ->where($where)->limit(1);
     }
@@ -350,7 +350,8 @@ class User extends ActiveRecord implements IdentityInterface
     public function afterSave($insert, $changedAttributes)
     {
         if ($insert === true) {
-            $userIP = sprintf("%u", ip2long(Yii::$app->getRequest()->getUserIP()));
+            $rawIp = Yii::$app->getRequest()->getUserIP();
+            $userIP = $rawIp === null ? '0' : sprintf("%u", ip2long($rawIp));
             (new UserInfo([
                 'user_id' => $this->id,
                 'reg_ip' => $userIP,
@@ -418,7 +419,7 @@ class User extends ActiveRecord implements IdentityInterface
 
     public function signin()
     {
-        $flgToday = false;
+        $flagToday = false;
         $flg10Days = false;
         $action = $this->getLastAction(History::ACTION_SIGNIN)->one();
         if ( !$action ) {
@@ -429,10 +430,10 @@ class User extends ActiveRecord implements IdentityInterface
         } else if ( date('Y-m-d', strtotime('-1 days')) == date('Y-m-d', $action->action_time) ) {
             $flagToday = true;
             $ext = json_decode($action->ext, true);
-            if ( intval($ext['continue']) % 10 === 9 ) {
+            if ( isset($ext['continue']) && intval($ext['continue']) % 10 === 9 ) {
                 $flg10Days = true;
             }
-            $continue = intval($ext['continue'])+1;
+            $continue = isset($ext['continue']) ? intval($ext['continue'])+1 : 1;
         } else {
             $flagToday = true;
             $continue = 1;

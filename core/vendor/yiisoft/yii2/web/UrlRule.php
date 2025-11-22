@@ -195,7 +195,7 @@ class UrlRule extends BaseObject implements UrlRuleInterface
             throw new InvalidConfigException('UrlRule::route must be set.');
         }
         if (is_array($this->normalizer)) {
-            $normalizerConfig = array_merge(['class' => UrlNormalizer::className()], $this->normalizer);
+            $normalizerConfig = array_merge(['class' => UrlNormalizer::class], $this->normalizer);
             $this->normalizer = Yii::createObject($normalizerConfig);
         }
         if ($this->normalizer !== null && $this->normalizer !== false && !$this->normalizer instanceof UrlNormalizer) {
@@ -336,7 +336,7 @@ class UrlRule extends BaseObject implements UrlRuleInterface
         $this->pattern = '#^' . trim(strtr($this->_template, $tr), '/') . '$#u';
 
         // if host starts with relative scheme, then insert pattern to match any
-        if (strncmp($this->host, '//', 2) === 0) {
+        if ($this->host !== null && strncmp($this->host, '//', 2) === 0) {
             $this->pattern = substr_replace($this->pattern, '[\w]+://', 2, 0);
         }
 

@@ -662,7 +662,7 @@ class Session extends Component implements \IteratorAggregate, \ArrayAccess, \Co
      * This method is required by the interface [[\IteratorAggregate]].
      * @return SessionIterator an iterator for traversing the session variables.
      */
-    public function getIterator()
+    public function getIterator(): SessionIterator
     {
         $this->open();
         return new SessionIterator();
@@ -683,7 +683,7 @@ class Session extends Component implements \IteratorAggregate, \ArrayAccess, \Co
      * This method is required by [[\Countable]] interface.
      * @return int number of items in the session.
      */
-    public function count()
+    public function count(): int
     {
         return $this->getCount();
     }
@@ -964,7 +964,7 @@ class Session extends Component implements \IteratorAggregate, \ArrayAccess, \Co
      * @param mixed $offset the offset to check on
      * @return bool
      */
-    public function offsetExists($offset)
+    public function offsetExists($offset): bool
     {
         $this->open();
 
@@ -976,7 +976,7 @@ class Session extends Component implements \IteratorAggregate, \ArrayAccess, \Co
      * @param int $offset the offset to retrieve element.
      * @return mixed the element at the offset, null if no element is found at the offset
      */
-    public function offsetGet($offset)
+    public function offsetGet($offset): mixed
     {
         $this->open();
 
@@ -988,7 +988,7 @@ class Session extends Component implements \IteratorAggregate, \ArrayAccess, \Co
      * @param int $offset the offset to set element
      * @param mixed $item the element value
      */
-    public function offsetSet($offset, $item)
+    public function offsetSet($offset, $item): void
     {
         $this->open();
         $_SESSION[$offset] = $item;
@@ -998,7 +998,7 @@ class Session extends Component implements \IteratorAggregate, \ArrayAccess, \Co
      * This method is required by the interface [[\ArrayAccess]].
      * @param mixed $offset the offset to unset element
      */
-    public function offsetUnset($offset)
+    public function offsetUnset($offset): void
     {
         $this->open();
         unset($_SESSION[$offset]);

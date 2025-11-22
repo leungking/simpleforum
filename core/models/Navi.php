@@ -69,7 +69,7 @@ class Navi extends ActiveRecord
 
 	public function getVisibleNodes()
     {
-        return $this->hasMany(Node::className(), ['id' => 'node_id'])
+    return $this->hasMany(Node::class, ['id' => 'node_id'])
 			->viaTable(NaviNode::tableName(), ['navi_id' => 'id'], 
                         function($query) {
                           $query->onCondition([NaviNode::tableName().'.visible'=>1])->orderBy(['sortid'=>SORT_ASC, 'id'=>SORT_DESC]);
@@ -78,7 +78,7 @@ class Navi extends ActiveRecord
 
 	public function getNodes()
     {
-        return $this->hasMany(Node::className(), ['id' => 'node_id'])
+    return $this->hasMany(Node::class, ['id' => 'node_id'])
 			->viaTable(NaviNode::tableName(), ['navi_id' => 'id'], 
                         function($query) {
                           $query->orderBy(['sortid'=>SORT_ASC, 'id'=>SORT_DESC]);
@@ -87,7 +87,7 @@ class Navi extends ActiveRecord
 
 	public function getVisibleNaviNodes()
     {
-        return $this->hasMany(NaviNode::className(), ['navi_id' => 'id'])
+        return $this->hasMany(NaviNode::class, ['navi_id' => 'id'])
 						->select(['node_id', 'navi_id'])
 						->where((['visible'=>1]))
                           ->orderBy(['sortid'=>SORT_ASC, 'id'=>SORT_ASC]);
@@ -95,7 +95,7 @@ class Navi extends ActiveRecord
 
 	public function getNaviNodes()
     {
-        return $this->hasMany(NaviNode::className(), ['navi_id' => 'id'])
+        return $this->hasMany(NaviNode::class, ['navi_id' => 'id'])
 						->select(['node_id', 'navi_id'])
                           ->orderBy(['sortid'=>SORT_ASC, 'id'=>SORT_ASC]);
     }

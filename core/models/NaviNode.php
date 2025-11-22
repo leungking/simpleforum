@@ -36,13 +36,13 @@ class NaviNode extends ActiveRecord
 
 	public function getNode()
     {
-        return $this->hasOne(Node::className(), ['id' => 'node_id'])
+                return $this->hasOne(Node::class, ['id' => 'node_id'])
 				->select(['id', 'name', 'ename']);
     }
 
 	public function getNavi()
     {
-        return $this->hasOne(Tag::className(), ['id' => 'navi_id'])
+                return $this->hasOne(Tag::class, ['id' => 'navi_id'])
 				->select(['id', 'name', 'ename']);
     }
 

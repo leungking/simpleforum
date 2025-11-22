@@ -42,7 +42,7 @@ class Node extends ActiveRecord
     {
         return [
             [
-                'class' => TimestampBehavior::className(),
+                'class' => TimestampBehavior::class,
                 'attributes' => [
                     ActiveRecord::EVENT_BEFORE_INSERT => ['created_at', 'updated_at'],
                     ActiveRecord::EVENT_BEFORE_UPDATE => ['updated_at'],
@@ -69,7 +69,7 @@ class Node extends ActiveRecord
 
     public function getTopics()
     {
-        return $this->hasMany(Topic::className(), ['node_id' => 'id']);
+        return $this->hasMany(Topic::class, ['node_id' => 'id']);
     }
 
     public static function getNodesWithoutNavi()

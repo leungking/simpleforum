@@ -108,6 +108,12 @@ class BaseHtml
      */
     public static function encode($content, $doubleEncode = true)
     {
+        if ($content === null) {
+            $content = '';
+        } elseif (!is_string($content)) {
+            $content = (string)$content;
+        }
+
         return htmlspecialchars($content, ENT_QUOTES | ENT_SUBSTITUTE, Yii::$app ? Yii::$app->charset : 'UTF-8', $doubleEncode);
     }
 

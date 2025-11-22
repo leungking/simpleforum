@@ -340,7 +340,12 @@ abstract class ErrorHandler extends Component
      */
     public static function convertExceptionToError($exception)
     {
-        trigger_error(static::convertExceptionToString($exception), E_USER_ERROR);
+        $message = static::convertExceptionToString($exception);
+        if (PHP_VERSION_ID >= 80400) {
+            trigger_error($message, E_USER_WARNING);
+            exit(1);
+        }
+        trigger_error($message, E_USER_ERROR);
     }
 
     /**

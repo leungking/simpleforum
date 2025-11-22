@@ -15,9 +15,11 @@ use app\models\UploadForm;
 use app\models\ChangePasswordForm;
 use app\models\ChangeEmailForm;
 use app\models\EditProfileForm;
+use app\models\User;
 
 $this->title = Yii::t('app', 'Account Settings');
 $session = Yii::$app->getSession();
+/** @var User $me */
 $me = Yii::$app->getUser()->getIdentity();
 $epModel = new EditProfileForm();
 $cpModel = new ChangePasswordForm();

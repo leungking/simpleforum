@@ -23,7 +23,7 @@ class InstallController extends AppController
     {
         return [
             'access' => [
-                'class' => AccessControl::className(),
+                'class' => AccessControl::class,
                 'rules' => [
                     [
                         'allow' => true,
@@ -57,8 +57,8 @@ class InstallController extends AppController
 
     public function actionIndex()
     {
-        if (version_compare(PHP_VERSION, '5.4', '<')) {
-            echo Yii::t('app/admin', 'PHP 5.4.0 or higher is required.');
+        if (version_compare(PHP_VERSION, '8.0.0', '<')) {
+            echo Yii::t('app/admin', 'PHP 8.0.0 or higher is required.');
             exit;
         }
         $this->createConfigFile();
@@ -69,12 +69,15 @@ class InstallController extends AppController
         $gdOK = $imagickOK = false;
 
         if (extension_loaded('imagick')) {
-            $imagick = new \Imagick();
-            $imagickFormats = $imagick->queryFormats('PNG');
-            if (in_array('PNG', $imagickFormats)) {
-                $imagickOK = true;
-            } else {
-                $imagickMemo = Yii::t('app/admin', 'Imagick extension does not support PNG.');
+            $imagickClass = '\\Imagick';
+            if (class_exists($imagickClass)) {
+                $imagick = new $imagickClass();
+                $imagickFormats = $imagick->queryFormats('PNG');
+                if (in_array('PNG', $imagickFormats)) {
+                    $imagickOK = true;
+                } else {
+                    $imagickMemo = Yii::t('app/admin', 'Imagick extension does not support PNG.');
+                }
             }
         }
 
@@ -94,9 +97,9 @@ class InstallController extends AppController
             array(
                 'name' => Yii::t('app/admin', 'PHP version'),
                 'mandatory' => true,
-                'condition' => version_compare(PHP_VERSION, '5.4.0', '>='),
+                'condition' => version_compare(PHP_VERSION, '8.0.0', '>='),
                 'by' => '<a href="http://www.yiiframework.com">Yii Framework</a>',
-                'memo' => Yii::t('app/admin', 'PHP 5.4.0 or higher is required.'),
+                'memo' => Yii::t('app/admin', 'PHP 8.0.0 or higher is required.'),
             ),
             array(
                 'name' => Yii::t('app/admin', '\'{folder}\' folder is writable', ['folder' => 'core/config']),
@@ -220,7 +223,7 @@ class InstallController extends AppController
             array(
                 'name' => Yii::t('app/admin', '{extension} extension', ['extension' => 'MBString']),
                 'mandatory' => true,
-                'condition' => extension_loaded('mbstring'),
+                'condition' => extension_loaded('mbstring') || function_exists('mb_strlen'),
                 'by' => '<a href="http://www.php.net/manual/en/book.mbstring.php">Multibyte string</a> processing',
             ),
             array(

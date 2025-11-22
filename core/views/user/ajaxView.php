@@ -7,6 +7,7 @@
 
 use yii\helpers\Html;
 use app\models\Favorite;
+use app\models\User;
 use app\components\SfHtml;
 
 $this->title = Html::encode($user['username']);
@@ -15,6 +16,7 @@ $settings = Yii::$app->params['settings'];
 $fomatter = Yii::$app->getFormatter();
 $isGuest = Yii::$app->getUser()->getIsGuest();
 if (!$isGuest) {
+    /** @var User $me */
     $me = Yii::$app->getUser()->getIdentity();
 }
 
@@ -60,7 +62,7 @@ if (!$isGuest && $me->isActive() && $me->id != $user['id']) {
     <?php endif ?>
   </li>
   <li class="list-group-item text-center small">
-      <p><strong><?php echo Yii::t('app', 'Following'), '&nbsp;', $user['userInfo']['following_count']； ?></strong> | 
+    <p><strong><?php echo Yii::t('app', 'Following'), '&nbsp;', $user['userInfo']['following_count']; ?></strong> | 
       <strong><?php echo Yii::t('app', 'Followers'), '&nbsp;', $user['userInfo']['follower_count']; ?></strong> |
       <strong><?php echo Yii::t('app', 'Topics'), '&nbsp;', $user['userInfo']['topic_count']; ?></strong> |
       <strong><?php echo Yii::t('app', 'Comments'), '&nbsp;', $user['userInfo']['comment_count']; ?></strong></p>

@@ -17,19 +17,24 @@ class CommonController extends \app\controllers\AppController
     {
         return [
             'verbs' => [
-                'class' => VerbFilter::className(),
+                'class' => VerbFilter::class,
                 'actions' => [
                     'delete' => ['post'],
                 ],
             ],
             'access' => [
-                'class' => AccessControl::className(),
+                'class' => AccessControl::class,
                 'rules' => [
                     [
                         'allow' => true,
                         'matchCallback' => function ($rule, $action) {
                             $me = Yii::$app->getUser();
-                            return ( !$me->getIsGuest() && $me->getIdentity()->isAdmin() );
+                            $identity = $me->getIdentity();
+                            return (
+                                !$me->getIsGuest()
+                                && $identity instanceof \app\models\User
+                                && $identity->isAdmin()
+                            );
                         },
                     ],
                 ],

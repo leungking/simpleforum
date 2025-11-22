@@ -34,7 +34,7 @@ class Notice extends ActiveRecord
     {
         return [
             [
-                'class' => TimestampBehavior::className(),
+                'class' => TimestampBehavior::class,
             ],
         ];
     }
@@ -53,13 +53,13 @@ class Notice extends ActiveRecord
 
     public function getSource()
     {
-        return $this->hasOne(User::className(), ['id' => 'source_id'])
+        return $this->hasOne(User::class, ['id' => 'source_id'])
                 ->select(['id', 'username', 'name', 'avatar']);
     }
 
     public function getTopic()
     {
-        return $this->hasOne(Topic::className(), ['id' => 'topic_id'])
+        return $this->hasOne(Topic::class, ['id' => 'topic_id'])
                 ->select(['id', 'title']);
     }
 

@@ -44,14 +44,19 @@ class SfBootstrap implements BootstrapInterface
             'portalmmm', 'Plucker', 'ReqwirelessWeb', 'SonyEricsson', 'Symbian', 'UP\\.Browser',
             'webOS', 'Windows CE', 'Windows Phone OS', 'Xiino'
         ];
-        $userAgent = $app->getRequest()->getUserAgent();
+        $ua = $app->getRequest()->getUserAgent();
+        $userAgent = is_string($ua) ? $ua : '';
         $pattern = '/' . implode('|', $mobiles) . '/i';
-        return (bool)preg_match($pattern, $userAgent) || strpos($userAgent, 'Android') !== false && strpos($userAgent, 'Mobile') !== false;
+        return ($userAgent !== '' && (bool)preg_match($pattern, $userAgent)) || ($userAgent !== '' && strpos($userAgent, 'Android') !== false && strpos($userAgent, 'Mobile') !== false);
     }
 
     // check tablet device
     protected function isTablet($app) {
-        $userAgent = $app->getRequest()->getUserAgent();
-        return (bool)preg_match('/iPad/i', $userAgent) || strpos($userAgent, 'Android') !== false && strpos($userAgent, 'Mobile') === false;
+        $ua = $app->getRequest()->getUserAgent();
+        $userAgent = is_string($ua) ? $ua : '';
+        if ($userAgent === '') {
+            return false;
+        }
+        return (bool)preg_match('/iPad/i', $userAgent) || (strpos($userAgent, 'Android') !== false && strpos($userAgent, 'Mobile') === false);
     }
 }

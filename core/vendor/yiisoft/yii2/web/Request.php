@@ -560,8 +560,8 @@ class Request extends \yii\base\Request
                 return $this->_bodyParams;
             }
 
-            $rawContentType = $this->getContentType();
-            if (($pos = strpos($rawContentType, ';')) !== false) {
+            $rawContentType = (string) $this->getContentType();
+            if ($rawContentType !== '' && ($pos = strpos($rawContentType, ';')) !== false) {
                 // e.g. text/html; charset=UTF-8
                 $contentType = substr($rawContentType, 0, $pos);
             } else {
@@ -585,7 +585,10 @@ class Request extends \yii\base\Request
                 $this->_bodyParams = $_POST;
             } else {
                 $this->_bodyParams = [];
-                mb_parse_str($this->getRawBody(), $this->_bodyParams);
+                $rawBody = $this->getRawBody();
+                if ($rawBody !== null && $rawBody !== false && $rawBody !== '') {
+                    mb_parse_str($rawBody, $this->_bodyParams);
+                }
             }
         }
 

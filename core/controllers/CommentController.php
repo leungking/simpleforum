@@ -23,27 +23,33 @@ class CommentController extends AppController
     {
         return [
             'verbs' => [
-                'class' => VerbFilter::className(),
+                'class' => VerbFilter::class,
                 'actions' => [
                     'delete' => ['post'],
                     'reply' => ['post'],
                 ],
             ],
             'access' => [
-                'class' => AccessControl::className(),
+                'class' => AccessControl::class,
                 'only' => ['edit', 'reply'],
                 'rules' => [
                     [
                         'allow' => true,
                         'matchCallback' => function ($rule, $action) {
                             $me = Yii::$app->getUser();
-                            return ( !$me->getIsGuest() && ($me->getIdentity()->isActive() || $me->getIdentity()->isAdmin()) );
+                            $identity = $me->getIdentity();
+                            return (
+                                !$me->getIsGuest()
+                                && $identity instanceof \app\models\User
+                                && ($identity->isActive() || $identity->isAdmin())
+                            );
                         },
                     ],
                 ],
                 'denyCallback' => function ($rule, $action) {
                     $me = Yii::$app->getUser();
-                    if( !$me->getIsGuest() && $me->getIdentity()->isInactive() ) {
+                    $identity = $me->getIdentity();
+                    if( !$me->getIsGuest() && $identity instanceof \app\models\User && $identity->isInactive() ) {
                         throw new ForbiddenHttpException(Yii::t('app', 'Your account is not activated. Please activate your account first.'));
                     } else {
                         throw new ForbiddenHttpException(Yii::t('app', 'You have no authority.'));
@@ -56,6 +62,7 @@ class CommentController extends AppController
     public function actionEdit($id)
     {
         $request = Yii::$app->getRequest();
+        /** @var \app\models\User $me */
         $me = Yii::$app->getUser()->getIdentity();
 
         $model = $this->findCommentModel($id, ['topic.node', 'topic.author']);
@@ -90,6 +97,7 @@ class CommentController extends AppController
     public function actionReply($id)
     {
         $request = Yii::$app->getRequest();
+        /** @var \app\models\User $me */
         $me = Yii::$app->getUser()->getIdentity();
         if( !$me->checkActionCost('addComment') ) {
             return $this->render('@app/views/common/info', [
