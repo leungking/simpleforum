@@ -13,6 +13,7 @@ use app\components\SfHtml;
 
 $session = Yii::$app->getSession();
 $settings = Yii::$app->params['settings'];
+/** @var \app\models\User $me */
 $me = Yii::$app->getUser()->getIdentity();
 
 //$editor = new \app\lib\Editor(['editor'=>$settings['editor']]);
@@ -31,7 +32,7 @@ $this->title = Yii::t('app', 'Add Comment');
         <?php echo Html::a(Yii::t('app', 'Home'), ['topic/index']), '&nbsp;/&nbsp;', Html::a(Html::encode($topic['node']['name']), ['topic/node', 'name'=>$topic['node']['ename']]); ?>
         <h3><?php echo Html::a(Html::encode($topic['title']), ['topic/view', 'id'=>$topic['id']]); ?></h3>
         <small class="gray">
-        <?php echo 'by ', SfHtml::uLink($topic['author']['username'], $topic['author']['name']), 
+        <?php echo 'by ', SfHtml::uLink($topic['author']), 
             '  •  ', Yii::$app->getFormatter()->asRelativeTime($topic['created_at']); ?>
         </small>
     </div>

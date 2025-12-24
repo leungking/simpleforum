@@ -46,12 +46,6 @@ if ($model->action === SignupForm::ACTION_AUTH_SIGNUP) {
             </div>
         </div>
         <div class="form-group row">
-            <label class="control-label col-sm-3 text-sm-right"><?php echo Yii::t('app', 'Username'); ?></label>
-            <div class="col-sm-9">
-                <strong><?php echo Html::encode($authInfo['username']); ?></strong>
-            </div>
-        </div>
-        <div class="form-group row">
             <label class="control-label col-sm-3 text-sm-right"><?php echo Yii::t('app', 'Have an account?'); ?></label>
             <div class="col-sm-9">
                 <?php echo Html::a(Yii::t('app', 'Bind your account'), ['auth-bind-account'], ['class'=>'btn sf-btn']); ?>
@@ -59,7 +53,6 @@ if ($model->action === SignupForm::ACTION_AUTH_SIGNUP) {
         </div>
         <br /><strong><?php echo Yii::t('app', 'Create an account'); ?></strong><hr>
 <?php endif; ?>
-            <?php echo $form->field($model, 'username')->textInput(['maxlength'=>16])->hint(Yii::t('app', 'letters, numbers and \'_\'')); ?>
             <?php echo $form->field($model, 'name')->textInput(['maxlength'=>40])->hint(Yii::t('app', 'display name')); ?>
             <?php echo $form->field($model, 'email')->textInput(['maxlength'=>50]); ?>
             <?php echo $form->field($model, 'password')->passwordInput(['maxlength'=>20]); ?>

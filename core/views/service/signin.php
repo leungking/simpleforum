@@ -8,6 +8,7 @@
 use yii\helpers\Html;
 
 $this->title = Yii::t('app', 'Daily Bonus');
+/** @var \app\models\User $me */
 $me = Yii::$app->getUser()->getIdentity();
 ?>
 

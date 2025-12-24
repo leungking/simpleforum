@@ -1,4 +1,10 @@
 <?php
+/**
+ * @link https://610000.xyz/
+ * @copyright Copyright (c) 2015 SimpleForum
+ * @author Leon admin@610000.xyz
+ */
+
 namespace app\controllers\admin;
 
 use Yii;
@@ -104,7 +110,6 @@ class RssCollectorController extends CommonController
                     }
                     libxml_clear_errors();
                     
-                    // Debug: show first 50 chars of content if parse fails
                     $preview = Html::encode(substr(trim($content), 0, 50));
                     throw new \Exception("XML Parse Error for $url: " . implode("; ", $errMsgs) . ". Content start: [$preview]");
                 }
@@ -113,26 +118,13 @@ class RssCollectorController extends CommonController
                 if (isset($xml->channel->item)) { // RSS 2.0
                     foreach ($xml->channel->item as $item) {
                         $description = (string)$item->description;
-                        $img = '';
-                        // Try to extract image from description HTML
-                        if (preg_match('/<img[^>]+src=["\']([^"\']+)["\']/i', $description, $imgMatch)) {
-                            $img = $imgMatch[1];
-                        }
-                        // Check enclosure if no image found in description
-                        if (!$img && isset($item->enclosure) && strpos((string)$item->enclosure['type'], 'image') !== false) {
-                            $img = (string)$item->enclosure['url'];
-                        }
-                        // Check media:content
-                        $media = $item->children('http://search.yahoo.com/mrss/');
-                        if (!$img && isset($media->content)) {
-                            $img = (string)$media->content->attributes()->url;
-                        }
+                        $media = $this->extractMedia($description, $item);
 
                         $items[] = [
                             'title' => (string)$item->title,
                             'link' => (string)$item->link,
                             'description' => $description,
-                            'image' => $img,
+                            'media' => $media,
                         ];
                     }
                 } elseif (isset($xml->entry)) { // Atom
@@ -145,24 +137,13 @@ class RssCollectorController extends CommonController
                         }
 
                         $description = (string)$entry->content ?: (string)$entry->summary;
-                        $img = '';
-                        // Try to extract image from description HTML
-                        if (preg_match('/<img[^>]+src=["\']([^"\']+)["\']/i', $description, $imgMatch)) {
-                            $img = $imgMatch[1];
-                        }
-
-                        $media = $entry->children('http://search.yahoo.com/mrss/');
-                        if (!$img && isset($media->content)) {
-                            $img = (string)$media->content->attributes()->url;
-                        } else if (!$img && isset($media->thumbnail)) {
-                            $img = (string)$media->thumbnail->attributes()->url;
-                        }
+                        $media = $this->extractMedia($description, $entry);
 
                         $items[] = [
                             'title' => (string)$entry->title,
                             'link' => $link,
                             'description' => $description,
-                            'image' => $img,
+                            'media' => $media,
                         ];
                     }
                 }
@@ -205,7 +186,7 @@ class RssCollectorController extends CommonController
                         'user_id' => $userId,
                         'title' => $title,
                         'description' => $cleanedDescription,
-                        'image' => $item['image'],
+                        'media' => $item['media'],
                     ];
                     $feedCount++;
                 }
@@ -217,6 +198,10 @@ class RssCollectorController extends CommonController
         }
 
         if (!empty($allItems)) {
+            $appSettings = Yii::$app->params['settings'];
+            $editor = $appSettings['editor'];
+            $isMarkdown = ($editor == 'SmdEditor' || $editor == 'Vditor');
+
             shuffle($allItems);
             foreach ($allItems as $item) {
                 $topic = new Topic([
@@ -226,12 +211,21 @@ class RssCollectorController extends CommonController
                     'title' => $item['title'],
                 ]);
                 
-                // Auto extract keywords as tags
                 $topic->tags = $this->extractKeywords($item['title'], $item['description']);
 
                 $finalContent = $item['description'];
-                if (!empty($item['image'])) {
-                    $finalContent .= "\n" . '[img]' . $item['image'] . '[/img]';
+                if (!empty($item['media'])) {
+                    foreach ($item['media'] as $media) {
+                        if ($media['type'] == 'image') {
+                            if ($isMarkdown) {
+                                $finalContent .= "\n\n![](" . $media['url'] . ")";
+                            } else {
+                                $finalContent .= "\n\n[img]" . $media['url'] . "[/img]";
+                            }
+                        } else if ($media['type'] == 'video') {
+                            $finalContent .= "\n\n" . $media['url'];
+                        }
+                    }
                 }
 
                 $topicContent = new TopicContent([
@@ -253,41 +247,104 @@ class RssCollectorController extends CommonController
         ]);
     }
 
+    private function extractMedia($html, $entry)
+    {
+        $media = [];
+        
+        // Common tracking pixel domains or patterns
+        $trackingPatterns = [
+            'pixel.wp.com',
+            'feeds.feedburner.com',
+            'statcounter.com',
+            'google-analytics.com',
+            'doubleclick.net',
+            'scorecardresearch.com',
+            '/pixel',
+            '/track',
+            '1x1',
+        ];
+
+        // Extract images from HTML
+        if (preg_match_all('/<img[^>]+src=["\']([^"\']+)["\']/i', $html, $matches)) {
+            foreach ($matches[1] as $url) {
+                $isTracking = false;
+                foreach ($trackingPatterns as $pattern) {
+                    if (strpos($url, $pattern) !== false) {
+                        $isTracking = true;
+                        break;
+                    }
+                }
+                if (!$isTracking) {
+                    $media[] = ['type' => 'image', 'url' => $url];
+                }
+            }
+        }
+
+        // Extract from Media RSS namespace
+        $mediaNs = $entry->children('http://search.yahoo.com/mrss/');
+        if (isset($mediaNs->content)) {
+            foreach ($mediaNs->content as $content) {
+                $attributes = $content->attributes();
+                $url = (string)$attributes->url;
+                $type = (string)$attributes->type;
+                if (strpos($type, 'image') !== false) {
+                    $media[] = ['type' => 'image', 'url' => $url];
+                } else if (strpos($type, 'video') !== false) {
+                    $media[] = ['type' => 'video', 'url' => $url];
+                }
+            }
+        }
+        
+        // Extract YouTube/Vimeo etc from links or iframes
+        if (preg_match_all('/https?:\/\/(www\.)?(youtube\.com|youtu\.be|v\.qq\.com|v\.youku\.com|player\.vimeo\.com|bilibili\.com\/video\/)[^\s"\'<>]+/i', $html, $matches)) {
+            foreach ($matches[0] as $url) {
+                $media[] = ['type' => 'video', 'url' => $url];
+            }
+        }
+
+        // De-duplicate by URL
+        $uniqueMedia = [];
+        $urls = [];
+        foreach ($media as $m) {
+            if (!in_array($m['url'], $urls)) {
+                $uniqueMedia[] = $m;
+                $urls[] = $m['url'];
+            }
+        }
+
+        return $uniqueMedia;
+    }
+
     private function cleanDescription($text)
     {
         $text = trim(strip_tags($text));
-        // Match everything up to the last sentence-ending punctuation that is NOT part of an ellipsis
-        // Supports English (.!?) and Chinese (。！？)
+        if (empty($text)) return '';
+        
+        // Try to get first few sentences
         if (preg_match('/^.*(?<!\.)[.!?。！？](?!\.)/us', $text, $match)) {
             return trim($match[0]);
         }
-        // If no complete sentence is found, return empty string to trigger skip
-        return '';
+        
+        // If no sentence found, return first 200 chars
+        if (mb_strlen($text) > 200) {
+            return mb_substr($text, 0, 200) . '...';
+        }
+        
+        return $text;
     }
 
     private function extractKeywords($title, $content)
     {
         $text = $title . ' ' . strip_tags($content);
-        
-        // Extract English words (3+ chars)
         preg_match_all('/[a-zA-Z]{3,}/', $text, $enMatches);
         $enWords = array_map('strtolower', $enMatches[0]);
-        
-        // Extract Chinese "words" (2-4 characters)
         preg_match_all('/[\x{4e00}-\x{9fa5}]{2,4}/u', $text, $zhMatches);
         $zhWords = $zhMatches[0];
-        
         $words = array_merge($enWords, $zhWords);
         $counts = [];
-        
-        // Common Chinese stop words
         $zhStopWords = ['这个', '那个', '什么', '如何', '可以', '进行', '已经', '通过', '目前', '其中', '同时', '以及', '因为', '所以', '但是', '如果', '虽然', '不仅', '而且', '就是', '这样', '这些', '那些', '一些', '非常', '特别', '相当', '比较', '更加', '可能', '应该', '必须', '需要', '能够', '为了', '关于', '对于', '由于', '因此', '从而', '或者', '还是', '甚至', '甚至于', '并且', '而且'];
-        
-        // Common English stop words
         $enStopWords = ['the', 'and', 'for', 'with', 'from', 'that', 'this', 'they', 'have', 'been', 'were', 'will', 'would', 'their', 'there', 'about', 'which', 'when', 'where', 'who', 'how', 'all', 'any', 'can', 'not', 'but', 'our', 'your', 'his', 'her', 'its', 'into', 'onto', 'than', 'then', 'also', 'some', 'such', 'only', 'more', 'most', 'very', 'just', 'than', 'them', 'these', 'those'];
-
         $stopWords = array_merge($zhStopWords, $enStopWords);
-        
         foreach ($words as $word) {
             if (in_array($word, $stopWords)) continue;
             if (!isset($counts[$word])) {
@@ -295,9 +352,9 @@ class RssCollectorController extends CommonController
             }
             $counts[$word]++;
         }
-        
         arsort($counts);
         $topWords = array_slice(array_keys($counts), 0, 5);
         return implode(',', $topWords);
     }
 }
+

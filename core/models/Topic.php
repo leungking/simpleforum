@@ -137,7 +137,7 @@ class Topic extends ActiveRecord
     public function getLastReply()
     {
         return $this->hasOne(User::class, ['id' => 'reply_id'])
-            ->select(['id', 'username']);
+            ->select(['id', 'username', 'name']);
     }
 
     public function getNaviNode()

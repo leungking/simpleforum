@@ -10,7 +10,7 @@ use app\models\Favorite;
 use app\models\User;
 use app\components\SfHtml;
 
-$this->title = Html::encode($user['username']);
+$this->title = Html::encode($user['name']);
 $settings = Yii::$app->params['settings'];
 
 $fomatter = Yii::$app->getFormatter();
@@ -32,7 +32,7 @@ if (!$isGuest && $me->isActive() && $me->id != $user['id']) {
         $favorParams = 'favorite';
     }
     $userOp['follow'] = Html::a('<i class="'.$favorIcon.' fa-star fa-lg aria-hidden="true""></i><span class="favorite-name">'.$favorName.'</span>', null, ['class'=>'btn btn-sm btn-default favorite', 'title'=>$favorName, 'href' => '#', 'onclick'=> 'return false;', 'params'=> $favorParams.' user '. $user['id']]);
-    $userOp['sms'] = Html::a('<i class="fa fa-envelope-o fa-lg" aria-hidden="true"></i><span class="favorite-name">' . Yii::t('app', 'SMS') . '</span>', ['service/sms', 'to'=>$user['username']], ['class'=>'btn btn-sm btn-default']);
+    $userOp['sms'] = Html::a('<i class="fa fa-envelope-o fa-lg" aria-hidden="true"></i><span class="favorite-name">' . Yii::t('app', 'SMS') . '</span>', ['service/sms', 'uid'=>$user['id']], ['class'=>'btn btn-sm btn-default']);
 }
 
 ?>

@@ -33,37 +33,121 @@ echo Alert::widget([
     ]);
 }
 ?>
-<?php $form = ActiveForm::begin([
-          'layout' => 'horizontal',
-          'id' => 'form-login',
-          'fieldConfig' => [
-              'horizontalCssClasses' => [
-                  'label' => 'col-form-label col-sm-3 text-sm-right',
-                  'wrapper' => 'col-sm-9',
-              ],
-          ],
-      ]); ?>
-        <?php echo $form->field($model, 'username')->textInput(['maxlength'=>20]); ?>
-        <?php echo $form->field($model, 'password')->passwordInput(['maxlength'=>20]); ?>
-        <?php echo $form->field($model, 'rememberMe', [
-                       'horizontalCssClasses' => [
-                           'offset' => 'offset-sm-3',
-                       ]
-                   ])->checkbox(); ?>
-        <?php
-        $captcha = ArrayHelper::getValue(Yii::$app->params, 'settings.captcha', '');
-        if(!empty($captcha) && ($plugin=ArrayHelper::getValue(Yii::$app->params, 'plugins.' . $captcha, []))) {
-            $plugin['class']::captchaWidget('signin', $form, $model, null, $plugin);
-        }
-        ?>
+<ul class="nav nav-tabs mb-3" id="loginTab" role="tablist">
+  <li class="nav-item">
+    <a class="nav-link active" id="password-tab" data-toggle="tab" href="#password-login" role="tab" aria-controls="password-login" aria-selected="true"><?php echo Yii::t('app', 'Password Login'); ?></a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" id="otp-tab" data-toggle="tab" href="#otp-login" role="tab" aria-controls="otp-login" aria-selected="false"><?php echo Yii::t('app', 'Verification Code Login'); ?></a>
+  </li>
+</ul>
 
-        <div class="form-group">
-            <div class="offset-sm-3 col-sm-9">
-            <?php echo Html::submitButton(Yii::t('app', 'Sign in'), ['class' => 'btn sf-btn', 'name' => 'login-button', 'id'=>'recaptchaToken']); ?>
-            &nbsp;&nbsp;<?php echo Html::a(Yii::t('app', 'Forgot password?'), ['site/forgot-password']); ?>
+<div class="tab-content" id="loginTabContent">
+  <div class="tab-pane fade show active" id="password-login" role="tabpanel" aria-labelledby="password-tab">
+    <?php $form = ActiveForm::begin([
+              'layout' => 'horizontal',
+              'id' => 'form-login-password',
+              'fieldConfig' => [
+                  'horizontalCssClasses' => [
+                      'label' => 'col-form-label col-sm-3 text-sm-right',
+                      'wrapper' => 'col-sm-9',
+                  ],
+              ],
+          ]); ?>
+            <?php echo Html::hiddenInput('login-type', 'password'); ?>
+            <?php echo $form->field($model, 'username')->textInput(['maxlength'=>50]); ?>
+            <?php echo $form->field($model, 'password')->passwordInput(['maxlength'=>20]); ?>
+            <?php echo $form->field($model, 'rememberMe', [
+                           'horizontalCssClasses' => [
+                               'offset' => 'offset-sm-3',
+                           ]
+                       ])->checkbox(); ?>
+            <?php
+            $captcha = ArrayHelper::getValue(Yii::$app->params, 'settings.captcha', '');
+            if(!empty($captcha) && ($plugin=ArrayHelper::getValue(Yii::$app->params, 'plugins.' . $captcha, []))) {
+                $plugin['class']::captchaWidget('signin', $form, $model, null, $plugin);
+            }
+            ?>
+            <div class="form-group">
+                <div class="offset-sm-3 col-sm-9">
+                <?php echo Html::submitButton(Yii::t('app', 'Sign in'), ['class' => 'btn sf-btn', 'name' => 'login-button']); ?>
+                &nbsp;&nbsp;<?php echo Html::a(Yii::t('app', 'Forgot password?'), ['site/forgot-password']); ?>
+                </div>
             </div>
-        </div>
-        <?php ActiveForm::end(); ?>
+    <?php ActiveForm::end(); ?>
+  </div>
+  <div class="tab-pane fade" id="otp-login" role="tabpanel" aria-labelledby="otp-tab">
+    <?php $form = ActiveForm::begin([
+              'layout' => 'horizontal',
+              'id' => 'form-login-otp',
+              'fieldConfig' => [
+                  'horizontalCssClasses' => [
+                      'label' => 'col-form-label col-sm-3 text-sm-right',
+                      'wrapper' => 'col-sm-9',
+                  ],
+              ],
+          ]); ?>
+            <?php echo Html::hiddenInput('login-type', 'otp'); ?>
+            <?php echo $form->field($model, 'username')->textInput(['maxlength'=>50, 'id' => 'otp-email']); ?>
+            <div class="form-group row field-loginform-otp required">
+                <label class="col-form-label col-sm-3 text-sm-right" for="loginform-otp"><?php echo Yii::t('app', 'Verification Code'); ?></label>
+                <div class="col-sm-9">
+                    <div class="input-group">
+                        <?php echo Html::activeTextInput($model, 'otp', ['class' => 'form-control', 'id' => 'loginform-otp']); ?>
+                        <div class="input-group-append">
+                            <button class="btn btn-outline-secondary" type="button" id="send-otp-btn"><?php echo Yii::t('app', 'Send Code'); ?></button>
+                        </div>
+                    </div>
+                    <div class="invalid-feedback"></div>
+                </div>
+            </div>
+            <?php echo $form->field($model, 'rememberMe', [
+                           'horizontalCssClasses' => [
+                               'offset' => 'offset-sm-3',
+                           ]
+                       ])->checkbox(); ?>
+            <div class="form-group">
+                <div class="offset-sm-3 col-sm-9">
+                <?php echo Html::submitButton(Yii::t('app', 'Sign in'), ['class' => 'btn sf-btn', 'name' => 'login-button']); ?>
+                </div>
+            </div>
+    <?php ActiveForm::end(); ?>
+  </div>
+</div>
+
+<?php
+$sendOtpUrl = Url::to(['site/send-otp']);
+$js = <<<JS
+$('#send-otp-btn').click(function() {
+    var email = $('#otp-email').val();
+    if (!email) {
+        alert('Please enter your email first.');
+        return;
+    }
+    var btn = $(this);
+    btn.prop('disabled', true);
+    $.post('{$sendOtpUrl}', {email: email}, function(data) {
+        if (data.status === 'success') {
+            alert(data.msg);
+            var count = 60;
+            var timer = setInterval(function() {
+                count--;
+                if (count <= 0) {
+                    clearInterval(timer);
+                    btn.text('Send Code').prop('disabled', false);
+                } else {
+                    btn.text(count + 's');
+                }
+            }, 1000);
+        } else {
+            alert(data.msg);
+            btn.prop('disabled', false);
+        }
+    });
+});
+JS;
+$this->registerJs($js);
+?>
 <?php if ( intval(Yii::$app->params['settings']['auth_enabled']) === 1 ) : ?>
         <h6 class="third-party-login-msg"><strong><?php echo Yii::t('app', 'Third-party login'); ?></strong></h6>
         <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 third-party-login">

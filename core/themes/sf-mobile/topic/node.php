@@ -15,6 +15,7 @@ $settings = Yii::$app->params['settings'];
 $currentPage = $pages->page+1;
 
 if ( !($isGuest = Yii::$app->getUser()->getIsGuest()) ) {
+    /** @var \app\models\User $me */
     $me = Yii::$app->getUser()->getIdentity();
 }
 
@@ -56,7 +57,7 @@ $nodeName = Html::encode($node['name']);
                 SfHtml::uImgLink($topic['author']),
                 '<div class="media-body">
                     <div class="small gray mt-0">';
-                    echo '<strong><i class="fa fa-user" aria-hidden="true"></i>', SfHtml::uLink($topic['author']['username'], $topic['author']['name']), SfHtml::uGroupRank($topic['author']['score']), '</strong>',
+                    echo '<strong><i class="fa fa-user" aria-hidden="true"></i>', SfHtml::uLink($topic['author']), SfHtml::uGroupRank($topic['author']['score']), '</strong>',
                     $topic['top']==1?' •  <i class="fa fa-arrow-up" aria-hidden="true"></i>'.Yii::t('app', 'Top'):'',
                     '</div>
                     <h5>';
@@ -72,7 +73,7 @@ $nodeName = Html::encode($node['name']);
                     <div class="small gray">';
                     echo '<i class="far fa-clock" aria-hidden="true"></i>'.Yii::$app->formatter->asRelativeTime($topic['replied_at']);
         if ($topic['comment_count']>0) {
-                    echo '<span class="item-lastreply"> • <i class="fa fa-comment" aria-hidden="true"></i>', SfHtml::uLink($topic['lastReply']['username']), '</span>';
+                    echo '<span class="item-lastreply"> • <i class="fa fa-comment" aria-hidden="true"></i>', SfHtml::uLink($topic['lastReply']), '</span>';
         }
                     echo '</div>
                 </div>';

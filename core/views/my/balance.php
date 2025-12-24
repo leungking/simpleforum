@@ -12,6 +12,7 @@ use app\components\SfHtml;
 
 $this->title = Yii::t('app', 'My Points');
 $formatter = Yii::$app->getFormatter();
+/** @var \app\models\User $me */
 $me = Yii::$app->getUser()->getIdentity();
 
 $types = [
@@ -40,7 +41,7 @@ function getComment($action, $ext) {
     } else if( $action == History::ACTION_ORIGINAL_SCORE ) {
         $str = Yii::t('app', 'Got {n} original points', ['n' => $ext['cost']]);
     } else if( $action == History::ACTION_COMMENTED ) {
-        $str = Yii::t('app', 'Received a comment from {username} on > {url}', ['username' => Html::a(Html::encode($ext['commented_by']), ['user/view', 'username'=>$ext['commented_by']]), 'url' => Html::a(Html::encode($ext['title']), ['topic/view', 'id'=>$ext['topic_id']])]);
+        $str = Yii::t('app', 'Received a comment from {username} on > {url}', ['username' => SfHtml::uLink($ext['commented_by']), 'url' => Html::a(Html::encode($ext['title']), ['topic/view', 'id'=>$ext['topic_id']])]);
     } else if( $action == History::ACTION_SIGNIN ) {
         $str = Yii::t('app', 'Got {n} bonus points', ['n' => $ext['cost']]);
     } else if( $action == History::ACTION_SIGNIN_10DAYS ) {
@@ -50,7 +51,7 @@ function getComment($action, $ext) {
     } else if( $action == History::ACTION_REG ) {
         $str = Yii::t('app', 'Got {n} points for registration', ['n' => $ext['cost']]);
     } else if( $action == History::ACTION_MSG ) {
-        $str = Yii::t('app', 'Sent a message to {username}', ['username' => Html::a(Html::encode($ext['target']), ['user/view', 'username'=>$ext['target']])]);
+        $str = Yii::t('app', 'Sent a message to {username}', ['username' => SfHtml::uLink($ext['target'])]);
     } else if( $action == History::ACTION_GOOD_TOPIC ) {
         $str = Yii::t('app', 'Thanked for {username}\'s topic > {url}', ['username' => SfHtml::uLink($ext['thank_to']), 'url' => Html::a(Html::encode($ext['title']), ['topic/view', 'id'=>$ext['topic_id']])]);
     } else if( $action == History::ACTION_GOOD_COMMENT ) {

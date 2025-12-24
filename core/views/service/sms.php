@@ -34,7 +34,7 @@ if( $sms ) {
   <dt class="col-sm-3 text-right"><?php echo Yii::t('app', 'Message'); ?></dt>
   <dd class="col-sm-9"><p><?php echo $sms->msg; ?></p></dd>
   <dt class="col-sm-3 text-right"><?php echo Yii::t('app', 'From'); ?></dt>
-  <dd class="col-sm-9"><p><?php echo SfHtml::uLink($sms['source']['username'], $sms['source']['name']); ?></p></dd>
+  <dd class="col-sm-9"><p><?php echo SfHtml::uLink($sms['source']); ?></p></dd>
   <dt class="col-sm-3 text-right"><?php echo Yii::t('app', 'Time'); ?></dt>
   <dd class="col-sm-9"><?php echo $formatter->asRelativeTime($sms['created_at']); ?></dd>
 </dl>
@@ -62,7 +62,15 @@ if ( $session->hasFlash('SendMsgNG') ) {
                 ],
             ],
       ]); ?>
-            <?php echo $form->field($model, 'username')->textInput(['maxlength'=>16]); ?>
+            <?php
+                if ($model->user_id > 0) {
+                    echo $form->field($model, 'user_id')->hiddenInput()->label(false);
+                    $target = \app\models\User::findOne($model->user_id);
+                    echo '<div class="form-group row"><label class="col-form-label col-sm-3 text-sm-right">', Yii::t('app', 'Recipient'), '</label><div class="col-sm-9"><p class="form-control-plaintext">', SfHtml::uLink($target), '</p></div></div>';
+                } else {
+                    echo $form->field($model, 'user_id')->textInput();
+                }
+            ?>
             <?php echo $form->field($model, 'msg')->textarea(['rows' => 3, 'maxlength'=>255]); ?>
         <?php
         $captcha = ArrayHelper::getValue(Yii::$app->params, 'settings.captcha', '');

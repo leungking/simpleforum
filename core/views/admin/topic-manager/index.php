@@ -1,4 +1,10 @@
 <?php
+/**
+ * @link https://610000.xyz/
+ * @copyright Copyright (c) 2015 SimpleForum
+ * @author Leon admin@610000.xyz
+ */
+
 use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\widgets\LinkPager;
@@ -28,9 +34,11 @@ $this->title = Yii::t('app/admin', 'Topic Manager');
             <a href="<?php echo Url::to(['admin/topic-manager/index']); ?>" class="btn btn-secondary ml-2"><?php echo Yii::t('app', 'Reset'); ?></a>
         </form>
 
+        <?php echo Html::beginForm(['admin/topic-manager/batch-delete'], 'post', ['id' => 'batch-form']); ?>
         <table class="table table-striped">
             <thead>
                 <tr>
+                    <th><input type="checkbox" id="select-all"></th>
                     <th>ID</th>
                     <th><?php echo Yii::t('app', 'Title'); ?></th>
                     <th><?php echo Yii::t('app', 'Node'); ?></th>
@@ -42,6 +50,7 @@ $this->title = Yii::t('app/admin', 'Topic Manager');
             <tbody>
                 <?php foreach ($topics as $topic): ?>
                 <tr>
+                    <td><input type="checkbox" name="ids[]" value="<?php echo $topic->id; ?>" class="topic-checkbox"></td>
                     <td><?php echo $topic->id; ?></td>
                     <td><?php echo Html::a(Html::encode($topic->title), ['topic/view', 'id' => $topic->id], ['target' => '_blank']); ?></td>
                     <td><?php echo Html::encode($topic->node->name); ?></td>
@@ -62,9 +71,20 @@ $this->title = Yii::t('app/admin', 'Topic Manager');
             </tbody>
         </table>
 
-        <div class="mt-3">
-            <?php echo LinkPager::widget(['pagination' => $pages]); ?>
+        <div class="mt-3 d-flex justify-content-between align-items-center">
+            <div>
+                <?php echo Html::submitButton(Yii::t('app', 'Batch Delete'), [
+                    'class' => 'btn btn-danger',
+                    'data' => [
+                        'confirm' => Yii::t('app', 'Are you sure you want to delete selected items?'),
+                    ],
+                ]); ?>
+            </div>
+            <div>
+                <?php echo LinkPager::widget(['pagination' => $pages]); ?>
+            </div>
         </div>
+        <?php echo Html::endForm(); ?>
     </div>
 </div>
 
@@ -75,3 +95,12 @@ $this->title = Yii::t('app/admin', 'Topic Manager');
 </div>
 
 </div>
+
+<?php
+$js = <<<JS
+$('#select-all').click(function() {
+    $('.topic-checkbox').prop('checked', this.checked);
+});
+JS;
+$this->registerJs($js);
+?>

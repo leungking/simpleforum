@@ -17,6 +17,7 @@ $this->registerJs('var baseUrl = \''.$baseUrl.'\';', \yii\web\View::POS_HEAD);
 $settings = Yii::$app->params['settings'];
 $isGuest = Yii::$app->getUser()->getIsGuest();
 if( !$isGuest ) {
+    /** @var \app\models\User $me */
     $me = Yii::$app->getUser()->getIdentity();
 }
 ?>
@@ -63,7 +64,7 @@ if( !$isGuest ) {
             } else {
                 $items = [
                         ['label' => '<i class="fa fa-home"></i>'.Yii::t('app', 'Home'), 'url' => ['topic/index']],
-                        ['label' => '<i class="fa fa-user"></i>'.Html::encode($me->username), 'url' => ['user/view', 'username'=>$me->username]],
+                        ['label' => '<i class="fa fa-user"></i>'.Html::encode($me->name), 'url' => ['user/view', 'id'=>$me->id]],
                         ['label' => '<i class="fa fa-cog"></i>'.Yii::t('app', 'Settings'), 'url' => ['my/settings']],
                         ['label' => '<i class="fas fa-sign-out-alt"></i>'.Yii::t('app', 'Sign out'), 'url' => ['/site/logout'], 'linkOptions' => ['data-method' => 'post']],
                 ];

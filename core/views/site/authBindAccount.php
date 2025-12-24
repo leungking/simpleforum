@@ -48,7 +48,7 @@ $this->title = Yii::t('app', 'Bind your account');
             </div>
         </div>
         <br /><strong><?php echo Yii::t('app', 'Bind your account'); ?></strong><hr>
-        <?php echo $form->field($model, 'username')->textInput(['maxlength'=>20]); ?>
+        <?php echo $form->field($model, 'username')->textInput(['maxlength'=>50]); ?>
         <?php echo $form->field($model, 'password')->passwordInput(['maxlength'=>20]); ?>
         <div class="form-group">
             <div class="offset-sm-3 col-sm-9">

@@ -13,6 +13,7 @@ use app\components\SfHtml;
 
 $this->title = Yii::t('app', 'My Invite Codes');
 $formatter = Yii::$app->getFormatter();
+/** @var \app\models\User $me */
 $me = Yii::$app->getUser()->getIdentity();
 
 ?>

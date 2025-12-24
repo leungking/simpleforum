@@ -16,26 +16,26 @@ use app\models\Comment;
 
 class UserController extends AppController
 {
-    public function actionView($username)
+    public function actionView($id)
     {
         $req = Yii::$app->getRequest();
         if ($req->getIsAjax()) {
             $this->layout = false;
-            $model = $this->findUserModel($username, ['userInfo']);
+            $model = $this->findUserModel($id, ['userInfo']);
             return $this->render('ajaxView', [
                  'user' => $model,
             ]);
         } else {
-            $model = $this->findUserModel($username, ['userInfo', 'topics.node', 'topics.lastReply', 'comments.topic.author']);
+            $model = $this->findUserModel($id, ['userInfo', 'topics.node', 'topics.lastReply', 'comments.topic.author']);
             return $this->render('view', [
                  'user' => $model,
             ]);
         }
     }
 
-    public function actionTopics($username)
+    public function actionTopics($id)
     {
-        $user = $this->findUserModel($username, ['userInfo']);
+        $user = $this->findUserModel($id, ['userInfo']);
         $pages = new Pagination(['totalCount' => $user['userInfo']['topic_count'], 'pageSize' => $this->settings['list_pagesize'], 'pageParam'=>'p']);
         $topics = Topic::find()->select('id')->where(['user_id' => $user['id']])
             ->orderBy(['id'=>SORT_DESC])->offset($pages->offset)
@@ -51,9 +51,9 @@ class UserController extends AppController
         ]);
     }
 
-    public function actionComments($username)
+    public function actionComments($id)
     {
-        $user = $this->findUserModel($username, ['userInfo']);
+        $user = $this->findUserModel($id, ['userInfo']);
         $pages = new Pagination(['totalCount' => $user['userInfo']['comment_count'], 'pageSize' => $this->settings['list_pagesize'], 'pageParam'=>'p']);
         $comments = Comment::find()->select(['id', 'created_at', 'topic_id', 'content', 'invisible'])->where(['user_id' => $user['id']])
             ->orderBy(['id'=>SORT_DESC])->offset($pages->offset)
@@ -69,9 +69,9 @@ class UserController extends AppController
         ]);
     }
 
-    protected function findUserModel($username, $with=null)
+    protected function findUserModel($id, $with=null)
     {
-        $model = User::find()->select(['id', 'created_at', 'status', 'username', 'avatar', 'score', 'comment', 'name'])->where(['username'=>$username]);
+        $model = User::find()->select(['id', 'created_at', 'status', 'username', 'avatar', 'score', 'comment', 'name'])->where(['id'=>$id]);
         if ( !empty($with) ) {
             $model = $model->with($with);
         }

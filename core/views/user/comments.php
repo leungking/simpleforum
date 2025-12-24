@@ -11,7 +11,7 @@ use yii\bootstrap4\Alert;
 use app\components\SfHtml;
 use app\models\User;
 
-$this->title = Yii::t('app', '{username}\'s All Comments', ['username'=>Html::encode($user['username'])]);
+$this->title = Yii::t('app', '{username}\'s All Comments', ['username'=>Html::encode($user['name'])]);
 $formatter = Yii::$app->getFormatter();
 $settings = Yii::$app->params['settings'];
 
@@ -32,14 +32,14 @@ $whiteWrapClass = $settings['editor']=='SmdEditor'?'white-wrap':'';
 
 <ul class="list-group sf-box sf-box-comments">
     <li class="list-group-item sf-box-header sf-navi">
-        <?php echo Html::a(Yii::t('app', 'Home'), ['topic/index']), '&nbsp;›&nbsp;', SfHtml::uLink($user['username'], $user['name']), '&nbsp;›&nbsp;', Yii::t('app', 'All Comments'); ?>
+        <?php echo Html::a(Yii::t('app', 'Home'), ['topic/index']), '&nbsp;›&nbsp;', SfHtml::uLink($user), '&nbsp;›&nbsp;', Yii::t('app', 'All Comments'); ?>
     </li>
 <?php
 foreach($comments as $comment):
 ?>
     <li class="list-group-item small list-group-item-info">
         <span class='fr'><?php echo $formatter->asRelativeTime($comment['created_at']); ?></span>
-        <?php echo Yii::t('app', 'Commented on {author}\'s topic', ['author'=>SfHtml::uLink($comment['topic']['author']['username'], $comment['topic']['author']['name'])]); ?> › <?php echo Html::a(Html::encode($comment['topic']['title']), ['topic/view', 'id'=>$comment['topic_id']]); ?>
+        <?php echo Yii::t('app', 'Commented on {author}\'s topic', ['author'=>SfHtml::uLink($comment['topic']['author'])]); ?> › <?php echo Html::a(Html::encode($comment['topic']['title']), ['topic/view', 'id'=>$comment['topic_id']]); ?>
     </li>
     <li class="list-group-item word-wrap <?php echo $whiteWrapClass; ?>">
     <?php

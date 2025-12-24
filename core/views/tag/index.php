@@ -56,10 +56,10 @@ $tagName = Html::encode($tag['name']);
             echo '<div class="item-commentcount">', Html::a($topic['comment_count'], $url, ['class'=>'badge fr count-info']),'</div>';
         }
                     echo Html::a(Html::encode($topic['node']['name']), ['topic/node', 'name'=>$topic['node']['ename']], ['class'=>'btn btn-sm btn-light small']),
-                    '  •  <strong><i class="fa fa-user" aria-hidden="true"></i>', SfHtml::uLink($topic['author']['username'], $topic['author']['name']), SfHtml::uGroupRank($topic['author']['score']), '</strong>',
+                    '  •  <strong><i class="fa fa-user" aria-hidden="true"></i>', SfHtml::uLink($topic['author']), SfHtml::uGroupRank($topic['author']['score']), '</strong>',
                     ' • <i class="far fa-clock" aria-hidden="true"></i>', $formatter->asRelativeTime($topic['replied_at']);
         if ($topic['comment_count']>0) {
-                    echo '<span class="item-lastreply"> • <i class="fa fa-reply" aria-hidden="true"></i>', SfHtml::uLink($topic['lastReply']['username']), '</span>';
+                    echo '<span class="item-lastreply"> • <i class="fa fa-reply" aria-hidden="true"></i>', SfHtml::uLink($topic['lastReply']), '</span>';
         }
                     echo '</div>
                 </div>';

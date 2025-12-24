@@ -1,0 +1,22 @@
+<?php
+/**
+ * Redis缓存配置示例
+ * 将此文件重命名为 cache.php 并根据您的环境调整设置
+ */
+
+return [
+    'class' => 'yii\redis\Cache',
+    'redis' => [
+        'hostname' => getenv('REDIS_HOST') ?: 'localhost',
+        'port' => getenv('REDIS_PORT') ?: 6379,
+        'database' => getenv('REDIS_DB') ?: 0,
+        'password' => getenv('REDIS_PASSWORD') ?: null,
+    ],
+    // 可选：添加序列化器以提高性能
+    'serializer' => [
+        // 使用 igbinary 扩展（需要安装）
+        // \yii\redis\Cache::SERIALIZER_IGBINARY,
+        // 或使用 PHP 序列化
+        \yii\redis\Cache::SERIALIZER_PHP,
+    ],
+];

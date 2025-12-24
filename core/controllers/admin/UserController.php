@@ -39,7 +39,7 @@ class UserController extends CommonController
 			$query = User::find()->where(['status'=>$status]);
 		    $countQuery = clone $query;
 		    $pages = new Pagination(['totalCount' => $countQuery->count('id')]);
-		    $users = $query->select(['id','username'])->orderBy(['id'=>SORT_DESC])
+		    $users = $query->select(['id','username', 'name', 'email'])->orderBy(['id'=>SORT_DESC])
 				->offset($pages->offset)
 		        ->limit($pages->limit)
 				->asArray()
@@ -50,6 +50,49 @@ class UserController extends CommonController
 		         'pages' => $pages,
 		    ]);
 		}
+    }
+
+    public function actionEmailChanges()
+    {
+        $query = \app\models\Token::find()->where(['type' => \app\models\Token::TYPE_EMAIL, 'status' => \app\models\Token::STATUS_PENDING_APPROVAL]);
+        $countQuery = clone $query;
+        $pages = new Pagination(['totalCount' => $countQuery->count()]);
+        $tokens = $query->with(['user'])
+            ->offset($pages->offset)
+            ->limit($pages->limit)
+            ->all();
+
+        return $this->render('email-changes', [
+            'tokens' => $tokens,
+            'pages' => $pages,
+        ]);
+    }
+
+    public function actionApproveEmail($id)
+    {
+        $token = \app\models\Token::findOne($id);
+        if ($token && $token->type == \app\models\Token::TYPE_EMAIL && $token->status == \app\models\Token::STATUS_PENDING_APPROVAL) {
+            $user = $token->user;
+            if ($user) {
+                $user->email = $token->ext;
+                $user->save(false);
+                $token->status = \app\models\Token::STATUS_USED;
+                $token->save(false);
+                Yii::$app->getSession()->setFlash('success', Yii::t('app', 'Email change approved.'));
+            }
+        }
+        return $this->redirect(['email-changes']);
+    }
+
+    public function actionRejectEmail($id)
+    {
+        $token = \app\models\Token::findOne($id);
+        if ($token && $token->type == \app\models\Token::TYPE_EMAIL && $token->status == \app\models\Token::STATUS_PENDING_APPROVAL) {
+            $token->status = \app\models\Token::STATUS_USED;
+            $token->save(false);
+            Yii::$app->getSession()->setFlash('success', Yii::t('app', 'Email change rejected.'));
+        }
+        return $this->redirect(['email-changes']);
     }
 /*
     public function actionDelete($id)

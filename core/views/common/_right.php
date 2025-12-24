@@ -15,6 +15,7 @@ $settings = Yii::$app->params['settings'];
 
 <?php if(!Yii::$app->getUser()->getIsGuest()):
 
+    /** @var \app\models\User $me */
     $me = Yii::$app->getUser()->getIdentity();
     $myInfo = $me->userInfo;
 ?>
@@ -24,7 +25,7 @@ $settings = Yii::$app->params['settings'];
       <?php echo SfHtml::uImg($me); ?>
       <div class="media-body">
         <?php
-            echo '<h5 class="mt-0">', SfHtml::uLink($me->username, $me->name, '<br />'), '</h5>';
+            echo '<h5 class="mt-0">', SfHtml::uLink($me), '</h5>';
             if ($me->isWatingActivation()) {
                 echo ' <small class="red">[ ', Html::a(Yii::t('app', 'Inactive'), ['my/settings']), ' ]</small>';
             } else if ($me->isWatingVerification()) {

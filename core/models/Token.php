@@ -19,8 +19,10 @@ class Token extends ActiveRecord
     const TYPE_PWD = 1;
     const TYPE_EMAIL = 2;
     const TYPE_INVITE_CODE = 3;
+    const TYPE_OTP = 4;
     const STATUS_VALID = 0;
     const STATUS_USED = 1;
+    const STATUS_PENDING_APPROVAL = 2;
 
     /**
      * @inheritdoc
@@ -81,7 +83,7 @@ class Token extends ActiveRecord
 
         if ( $model ) {
             try {
-                return Yii::$app->getMailer()->compose('@app/mail/' . Yii::$app->language . '/registerVerifyToken-text', ['token' => $model, 'username'=>$user['username']])
+                return Yii::$app->getMailer()->compose('@app/mail/' . Yii::$app->language . '/registerVerifyToken-text', ['token' => $model, 'username'=>$user['name']])
                     ->setFrom([$settings['mailer_username'] => $settings['site_name']])
                     ->setTo($email)
                     ->setSubject(Yii::t('app', '{name}: Activate account', ['name' => $settings['site_name']]))
@@ -98,22 +100,52 @@ class Token extends ActiveRecord
         $model = static::find()
             ->where(['user_id'=>$user_id, 'type'=>$type, 'status'=>self::STATUS_VALID])
             ->andWhere(['>', 'expires', time()])
-            ->orderBy(['expires'=>SORT_DESC])
-            ->limit(1)
             ->one();
-        if (!$model) {
-            $model = new static([
-                'user_id' => $user_id,
-                'type' => $type,
-                'expires' => time()+1800,
-                'token' => self::generateToken(),
-                'ext' => $ext,
-            ]);
-            if ( !$model->save(false) ) {
-                $model = null;
-            }
+        if ( !$model ) {
+            $model = new Token();
+            $model->user_id = $user_id;
+            $model->type = $type;
+            $model->token = ($type == self::TYPE_OTP) ? sprintf('%06d', mt_rand(100000, 999999)) : self::generateToken();
+            $model->ext = $ext;
+            $model->expires = time() + 1800; // 30 minutes
+            $model->status = self::STATUS_VALID;
+            $model->save();
         }
         return $model;
+    }
+
+    public static function sendOTP($user)
+    {
+        $settings = Yii::$app->params['settings'];
+        $model = self::findByType(self::TYPE_OTP, $user->id, $user->email);
+
+        if ($model) {
+            try {
+                return Yii::$app->getMailer()->compose()
+                    ->setFrom([$settings['mailer_username'] => $settings['site_name']])
+                    ->setTo($user->email)
+                    ->setSubject(Yii::t('app', '{name}: Login verification code', ['name' => $settings['site_name']]))
+                    ->setTextBody(Yii::t('app', 'Your login verification code is: {code}. It will expire in 30 minutes.', ['code' => $model->token]))
+                    ->send();
+            } catch (\Exception $e) {
+                return false;
+            }
+        }
+        return false;
+    }
+
+    public static function validateOTP($user_id, $otp)
+    {
+        $model = static::find()
+            ->where(['user_id' => $user_id, 'type' => self::TYPE_OTP, 'token' => $otp, 'status' => self::STATUS_VALID])
+            ->andWhere(['>', 'expires', time()])
+            ->one();
+        if ($model) {
+            $model->status = self::STATUS_USED;
+            $model->save();
+            return true;
+        }
+        return false;
     }
 
 }

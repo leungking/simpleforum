@@ -52,8 +52,9 @@ if ($indexPage > 1) {
 $isGuest = Yii::$app->getUser()->getIsGuest();
 $topicOp = [];
 if(!$isGuest) {
+    /** @var \app\models\User $me */
     $me = Yii::$app->getUser()->getIdentity();
-    $topicOp['sms'] = Html::a('<i class="fa fa-envelope fa-lg" aria-hidden="true"></i>', ['service/sms', 'to'=>Html::encode($topic['author']['username'])], ['title' => Yii::t('app', 'Send Message')]);
+    $topicOp['sms'] = Html::a('<i class="fa fa-envelope fa-lg" aria-hidden="true"></i>', ['service/sms', 'uid'=>$topic['author']['id']], ['title' => Yii::t('app', 'Send Message')]);
     if ( $me->canReply($topic) ) {
         $topicOp['reply'] = Html::a('<i class="fa fa-comment fa-lg" aria-hidden="true"></i>', null, ['href' => '#reply', 'title' => Yii::t('app', 'Add Comment')]);
     }
@@ -91,7 +92,7 @@ $topicTitle = Html::encode($topic['title']);
         <h2 class="word-wrap my-3"><?php echo $topicTitle; ?></h2>
         <small class="gray">
         <?php
-            echo '<strong><i class="fa fa-user"></i>', SfHtml::uLink($topic['author']['username'], $topic['author']['name']), SfHtml::uGroupRank($topic['author']['score']),'</strong>',
+            echo '<strong><i class="fa fa-user"></i>', SfHtml::uLink($topic['author']), SfHtml::uGroupRank($topic['author']['score']),'</strong>',
                 ' • <i class="far fa-clock"></i>', $formatter->asRelativeTime($topic['created_at']), ' • ', Yii::t('app', '{0,number} clicks', $topic['views']);
             echo ' • ' .Yii::t('app', 'Font'). ' <i class="fa fa-font fa-2x fontsize-plus" title="'.Yii::t('app', 'Bigger').'"></i> <i class="fa fa-font fa-lg fontsize-minus" title="'.Yii::t('app', 'Smaller').'"></i>';
             if ( !$isGuest && !empty($topicOp) ) {
@@ -133,7 +134,7 @@ $topicTitle = Html::encode($topic['title']);
 $userOp = [];
 if(!$isGuest && $me->isActive()) {
     if ($me->id != $topic['user_id']) {
-        $userOp['good'] = Html::a('<i class="far fa-thumbs-up fa-lg" aria-hidden="true"></i><span class="good-num">' . ($topic['good']>0?$topic['good']:'') . '</span>', null, ['id'=>'good-topic-'.$topic['id'], 'title'=>Yii::t('app', 'Good'), 'href' => '#', 'onclick'=> 'return false;',  'data-toggle'=>'modal', 'data-target'=>'#exampleModal', 'data-author'=>Html::encode($topic['author']['username'])]);
+        $userOp['good'] = Html::a('<i class="far fa-thumbs-up fa-lg" aria-hidden="true"></i><span class="good-num">' . ($topic['good']>0?$topic['good']:'') . '</span>', null, ['id'=>'good-topic-'.$topic['id'], 'title'=>Yii::t('app', 'Good'), 'href' => '#', 'onclick'=> 'return false;',  'data-toggle'=>'modal', 'data-target'=>'#exampleModal', 'data-author'=>Html::encode($topic['author']['name'])]);
     } else {
         $userOp['good'] = '<i class="far fa-thumbs-up fa-lg" aria-hidden="true"></i><span class="good-num">' . ($topic['good']>0?$topic['good']:'') . '</span>';
     }
@@ -179,9 +180,9 @@ foreach($comments as $comment){
                 ]]);
         }
         if ( $me->canReply($topic) ) {
-            $userOp['reply'] = Html::a('<i class="fa fa-reply fa-lg" aria-hidden="true"></i>', null, ['title'=>Yii::t('app', 'Add Comment'), 'href' => '#', 'onclick'=> 'return false;', 'class'=>'reply-to', 'params'=>Html::encode($comment['author']['username'])]);
+            $userOp['reply'] = Html::a('<i class="fa fa-reply fa-lg" aria-hidden="true"></i>', null, ['title'=>Yii::t('app', 'Add Comment'), 'href' => '#', 'onclick'=> 'return false;', 'class'=>'reply-to', 'params'=>Html::encode($comment['author']['name'])]);
         }
-        $userOpGood = ' ' . Html::a('<i class="far fa-thumbs-up fa-lg" aria-hidden="true"></i><span class="good-num">' . ($comment['good']>0?$comment['good']:'') . '</span>', null, ['id'=>'good-comment-'.$comment['id'], 'title'=>Yii::t('app', 'Good'), 'href' => '#', 'onclick'=> 'return false;',  'data-toggle'=>'modal', 'data-target'=>'#exampleModal', 'data-author'=>Html::encode($comment['author']['username'])]);
+        $userOpGood = ' ' . Html::a('<i class="far fa-thumbs-up fa-lg" aria-hidden="true"></i><span class="good-num">' . ($comment['good']>0?$comment['good']:'') . '</span>', null, ['id'=>'good-comment-'.$comment['id'], 'title'=>Yii::t('app', 'Good'), 'href' => '#', 'onclick'=> 'return false;',  'data-toggle'=>'modal', 'data-target'=>'#exampleModal', 'data-author'=>Html::encode($comment['author']['name'])]);
     }
     $userOp['position'] = Yii::t('app', '#{0,number}', $comment['position']);
 
@@ -193,7 +194,7 @@ foreach($comments as $comment){
                 <div>
                   <small class="fr gray">', implode(' | ', $userOp), '</small>
                   <small class="gray">
-                    <i class="fa fa-user" aria-hidden="true"></i><strong>', SfHtml::uLink($comment['author']['username'], $comment['author']['name']), SfHtml::uGroupRank($comment['author']['score']), '</strong> ',$comment['author']['comment'],' •  ',
+                    <i class="fa fa-user" aria-hidden="true"></i><strong>', SfHtml::uLink($comment['author']), SfHtml::uGroupRank($comment['author']['score']), '</strong> ',$comment['author']['comment'],' •  ',
                     '<i class="far fa-clock" aria-hidden="true"></i>', $formatter->asRelativeTime($comment['created_at']), $userOpGood,
                   '</small>
                 </div>';

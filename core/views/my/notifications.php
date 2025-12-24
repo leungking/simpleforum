@@ -41,7 +41,7 @@ foreach($notices as $notice) {
         SfHtml::uImgLink($notice['source'], 'small', ['class'=>'media-left']),
         '<div class="media-body">
             <span class="fr gray small">', $formatter->asRelativeTime($notice['created_at']), '</span>',
-            SfHtml::uLink($notice['source']['username']), ' ';
+            SfHtml::uLink($notice['source']), ' ';
             if($notice['type'] == Notice::TYPE_COMMENT) {
                 echo Yii::t('app', 'commented on your topic [{title}].', ['title'=>Html::a(Html::encode($notice['topic']['title']), Topic::getRedirectUrl($notice['topic_id'], $notice['position']))]),
                     $notice['notice_count']>0?'<span class="small gray">('. Yii::t('app', '+{n, plural, =1{# time} other{# times}}', ['n'=>intval($notice['notice_count'])]) . ')</span>':'';

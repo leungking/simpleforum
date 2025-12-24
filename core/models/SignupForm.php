@@ -13,6 +13,7 @@ use yii\helpers\ArrayHelper;
 use app\models\User;
 use app\components\SfHook;
 use app\components\SfEvent;
+use app\components\SecurityHelper;
 
 /**
  * Signup form
@@ -22,7 +23,6 @@ class SignupForm extends Model
     const ACTION_SIGNUP = 'signup';
     const ACTION_AUTH_SIGNUP = 'auth-signup';
 
-    public $username;
     public $name;
     public $email;
     public $password;
@@ -39,22 +39,18 @@ class SignupForm extends Model
     {
         $rules = [
             [
-                ['username', 'email', 'name', 'invite_code'],
+                ['email', 'name', 'invite_code'],
                 'filter',
                 'filter' => function($value){ return $value === null ? '' : trim($value); }
             ],
-            [['username', 'email', 'name', 'password', 'password_repeat'], 'required'],
-            [['username', 'email'], 'filter', 'filter' => 'strtolower'],
-            ['username', 'match', 'pattern' => User::USERNAME_PATTERN, 'message' => Yii::t('app', 'Your username can only contain letters, numbers and \'_\'.')],
-            ['username', 'string', 'length' => [4, 16]],
-//            ['username', 'validateMbString'],
-            ['username', 'usernameFilter'],
+            [['email', 'name', 'password', 'password_repeat'], 'required'],
+            [['email'], 'filter', 'filter' => 'strtolower'],
             ['name', 'string', 'length' => [4, 40]],
             ['name', 'nameFilter'],
             ['email', 'email'],
-            ['password', 'string', 'length' => [6, 16]],
+            ['password', 'string', 'length' => [8, 32]], // 增强密码长度要求
+            ['password', 'validatePasswordStrength'], // 添加密码强度验证
             ['password_repeat', 'compare', 'skipOnEmpty'=>false, 'compareAttribute'=>'password', 'message' => Yii::t('app', 'Password confirmation doesn\'t match the password.')],
-            ['username', 'unique', 'targetClass' => '\app\models\User', 'message' => Yii::t('app', '{attribute} is already in use.', ['attribute' => Yii::t('app', 'Username')])],
             ['email', 'unique', 'targetClass' => '\app\models\User', 'message' => Yii::t('app', '{attribute} is already in use.', ['attribute' => Yii::t('app', 'Email')])],
             ['invite_code', 'validateInviteCode'],
         ];
@@ -124,6 +120,14 @@ class SignupForm extends Model
         }
     }
 
+    public function validatePasswordStrength($attribute, $params)
+    {
+        $strength = SecurityHelper::checkPasswordStrength($this->$attribute);
+        if ($strength['score'] < 50) {
+            $this->addError($attribute, Yii::t('app', 'Password is too weak. {feedback}', ['feedback' => $strength['feedback']]));
+        }
+    }
+
     public function validateInviteCode($attribute, $params)
     {
         $this->_inviteCode = Token::find()
@@ -160,7 +164,18 @@ class SignupForm extends Model
     {
         if ($this->validate()) {
             $user = new User();
-            $user->username = $this->username;
+            // Generate random alphanumeric username
+            do {
+                $username = Yii::$app->security->generateRandomString(12);
+                // Ensure it starts with a letter and only contains alphanumeric characters to be safe
+                $username = preg_replace('/[^a-zA-Z0-9]/', '', $username);
+                if (strlen($username) < 8) {
+                    $username .= Yii::$app->security->generateRandomString(4);
+                }
+                $username = substr($username, 0, 12);
+            } while (User::find()->where(['username' => $username])->exists());
+            
+            $user->username = strtolower($username);
             $user->email = $this->email;
             $user->name = $this->name;
             $user->setPassword($this->password);
@@ -168,13 +183,8 @@ class SignupForm extends Model
             $user->score = User::getCost('reg');
             $user->avatar = 'avatar/0_{size}.png';
             if ( $this->action != self::ACTION_AUTH_SIGNUP ) {
-                if (intval(Yii::$app->params['settings']['email_verify']) === 1) {
-                    $user->status = User::STATUS_INACTIVE;
-                } else if (intval(Yii::$app->params['settings']['admin_verify']) === 1) {
-                    $user->status = User::STATUS_ADMIN_VERIFY;
-                } else {
-                    $user->status = User::STATUS_ACTIVE;
-                }
+                // Force email verification
+                $user->status = User::STATUS_INACTIVE;
             } else {
                 $user->status = User::STATUS_ACTIVE;
             }
@@ -184,7 +194,7 @@ class SignupForm extends Model
                     $this->_inviteCode->ext = json_encode(['id'=>$user->id, 'username'=>$user->username]);
                     $this->_inviteCode->save();
                 }
-                if ( $this->action != self::ACTION_AUTH_SIGNUP && intval(Yii::$app->params['settings']['email_verify']) === 1) {
+                if ( $this->action != self::ACTION_AUTH_SIGNUP ) {
                     Token::sendActivateMail($user);
                 }
                 return $user;

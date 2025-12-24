@@ -15,9 +15,9 @@ return [
     'new/<node:(\w|-)+>' => 'topic/add',
     'n/<name:(\w|-)+>' => 'topic/node',
     'tag/<name>' => 'tag/index',
-    'member/<username:\w+>' => 'user/view',
-    'member/<username:\w+>/topics' => 'user/topics',
-    'member/<username:\w+>/comments' => 'user/comments',
+    'member/<id:\d+>' => 'user/view',
+    'member/<id:\d+>/topics' => 'user/topics',
+    'member/<id:\d+>/comments' => 'user/comments',
     'site/auth-<authclient:(?!(signup|bind-account))\w+>' => 'site/auth',
     'admin' => 'admin/setting/all',
 ];

@@ -1,4 +1,10 @@
 <?php
+/**
+ * @link https://610000.xyz/
+ * @copyright Copyright (c) 2015 SimpleForum
+ * @author Leon admin@610000.xyz
+ */
+
 namespace app\controllers\admin;
 
 use Yii;
@@ -7,9 +13,23 @@ use app\models\Node;
 use app\models\Tag;
 use yii\data\Pagination;
 use yii\helpers\ArrayHelper;
+use yii\filters\VerbFilter;
 
 class TopicManagerController extends CommonController
 {
+    public function behaviors()
+    {
+        return ArrayHelper::merge(parent::behaviors(), [
+            'verbs' => [
+                'class' => VerbFilter::class,
+                'actions' => [
+                    'delete' => ['post'],
+                    'batch-delete' => ['post'],
+                ],
+            ],
+        ]);
+    }
+
     public function actionIndex()
     {
         $request = Yii::$app->getRequest();
@@ -25,7 +45,8 @@ class TopicManagerController extends CommonController
 
         if (!empty($tag_id)) {
             $query->innerJoin('{{%tag_topic}}', '{{%tag_topic}}.topic_id = {{%topic}}.id')
-                  ->andWhere(['{{%tag_topic}}.tag_id' => $tag_id]);
+                  ->andWhere(['{{%tag_topic}}.tag_id' => $tag_id])
+                  ->distinct();
         }
 
         if (!empty($q)) {
@@ -46,7 +67,7 @@ class TopicManagerController extends CommonController
         $nodes = ArrayHelper::map(Node::find()->asArray()->all(), 'id', 'name');
         $tags = ArrayHelper::map(Tag::find()->limit(100)->asArray()->all(), 'id', 'name');
 
-        return $this->render('@app/plugins/TopicManager/views/index', [
+        return $this->render('index', [
             'topics' => $topics,
             'pages' => $pages,
             'nodes' => $nodes,
@@ -63,6 +84,19 @@ class TopicManagerController extends CommonController
         if ($model) {
             $model->delete();
             Yii::$app->getSession()->setFlash('success', Yii::t('app', 'Topic deleted.'));
+        }
+        return $this->redirect(['index']);
+    }
+
+    public function actionBatchDelete()
+    {
+        $ids = Yii::$app->getRequest()->post('ids');
+        if (!empty($ids) && is_array($ids)) {
+            $topics = Topic::findAll($ids);
+            foreach ($topics as $topic) {
+                $topic->delete();
+            }
+            Yii::$app->getSession()->setFlash('success', Yii::t('app', '{n} topics deleted.', ['n' => count($ids)]));
         }
         return $this->redirect(['index']);
     }

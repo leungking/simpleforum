@@ -14,7 +14,7 @@ use app\lib\Util;
 
 class SendMsgForm extends Model
 {
-    public $username;
+    public $user_id;
     public $msg;
     public $captcha;
     protected $_user;
@@ -22,11 +22,11 @@ class SendMsgForm extends Model
     public function rules()
     {
         $rules = [
-            [['username', 'msg'], 'trim'],
-            [['username', 'msg'], 'required'],
-            ['username', 'string', 'max'=>16],
+            [['user_id', 'msg'], 'trim'],
+            [['user_id', 'msg'], 'required'],
+            ['user_id', 'integer'],
             ['msg', 'string', 'max'=>255],
-            ['username', 'validateUsername'],
+            ['user_id', 'validateUser'],
         ];
 
         $captcha = ArrayHelper::getValue(Yii::$app->params, 'settings.captcha', '');
@@ -43,27 +43,28 @@ class SendMsgForm extends Model
     public function attributeLabels()
     {
         return [
-            'username' => Yii::t('app', 'Username'),
+            'user_id' => Yii::t('app', 'Recipient'),
             'msg' => Yii::t('app', 'Message'),
             'captcha' => Yii::t('app', 'Enter code'),
         ];
     }
 
-    public function validateUsername($attribute, $params)
+    public function validateUser($attribute, $params)
     {
         $me = Yii::$app->getUser()->getIdentity();
-      if( $me->username == $this->$attribute) {
+      if( $me->id == $this->$attribute) {
             $this->addError($attribute, Yii::t('app', 'Can\'t send a message to yourself.'));
             return;
         }
-        $this->_user = User::findOne(['username'=>$this->$attribute]);
+        $this->_user = User::findOne($this->$attribute);
         if ( !$this->_user ) {
-            $this->addError($attribute, Yii::t('app', '{attribute} doesn\'t exist.', ['attribute'=>Yii::t('app', 'Username')]));
+            $this->addError($attribute, Yii::t('app', '{attribute} doesn\'t exist.', ['attribute'=>Yii::t('app', 'User')]));
         }
     }
 
     public function apply()
     {
+        /** @var \app\models\User $me */
         $me = Yii::$app->getUser()->getIdentity();
         (new Notice([
             'target_id' => $this->_user->id,
@@ -79,7 +80,7 @@ class SendMsgForm extends Model
             'action' => History::ACTION_MSG,
             'action_time' => time(),
             'target' => $this->_user->id,
-            'ext' => json_encode(['score'=>$me->score, 'cost'=>$cost, 'target'=>$this->username, 'msg'=>$this->msg]),
+            'ext' => json_encode(['score'=>$me->score, 'cost'=>$cost, 'target'=>['id'=>$this->_user->id, 'name'=>$this->_user->name], 'msg'=>$this->msg]),
         ]))->save(false);
         return true;
     }

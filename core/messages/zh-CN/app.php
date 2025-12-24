@@ -94,6 +94,8 @@ return [
     'Created At' => '创建时间',
     'Action' => '操作',
     'Topic deleted.' => '文章已删除。',
+    '{n} topics deleted.' => '已删除 {n} 篇文章。',
+    'Batch Delete' => '批量删除',
     'Font' => '字体',
     'Forgot password?' => '忘记密码了',
     'Forum under maintenance' => '论坛维护中，暂时关闭',

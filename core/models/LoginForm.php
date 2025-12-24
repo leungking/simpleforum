@@ -12,6 +12,8 @@ use yii\base\Model;
 use yii\helpers\ArrayHelper;
 use app\components\SfHook;
 use app\components\SfEvent;
+use app\components\RateLimiter;
+
 /**
  * Login form
  */
@@ -19,8 +21,9 @@ class LoginForm extends Model
 {
     const SCENARIO_BIND = 2;
 
-    public $username;
+    public $username; // This will be used for Email in frontend
     public $password;
+    public $otp;
     public $rememberMe = true;
     public $captcha;
 
@@ -34,6 +37,7 @@ class LoginForm extends Model
     {
         $scenarios = parent::scenarios();
         $scenarios[self::SCENARIO_BIND] = ['username', 'password'];
+        $scenarios['otp-login'] = ['username', 'otp'];
         return $scenarios;
     }
 
@@ -43,10 +47,15 @@ class LoginForm extends Model
     public function rules()
     {
         $rules = [
-            [['username', 'password'], 'required'],
+            [['username'], 'required'],
+            [['password'], 'required', 'on' => ['default', self::SCENARIO_BIND]],
+            [['otp'], 'required', 'on' => ['otp-login']],
             ['username', 'filter', 'filter' => 'strtolower'],
+            ['username', 'email'],
             ['rememberMe', 'boolean'],
-            ['password', 'validatePassword'],
+            ['password', 'validatePassword', 'on' => ['default', self::SCENARIO_BIND]],
+            ['otp', 'validateOtp', 'on' => ['otp-login']],
+            ['username', 'validateVerificationPeriod'],
         ];
         $captcha = ArrayHelper::getValue(Yii::$app->params, 'settings.captcha', '');
         if(!empty($captcha) && ($plugin=ArrayHelper::getValue(Yii::$app->params, 'plugins.' . $captcha, []))) {
@@ -62,11 +71,32 @@ class LoginForm extends Model
     public function attributeLabels()
     {
         return [
-            'username' => Yii::t('app', 'Username'),
+            'username' => Yii::t('app', 'Email'),
             'password' => Yii::t('app', 'Password'),
+            'otp' => Yii::t('app', 'Verification Code'),
             'rememberMe' => Yii::t('app', 'Remember me for one week'),
             'captcha' => Yii::t('app', 'Enter code'),
         ];
+    }
+
+    public function validateVerificationPeriod($attribute, $params)
+    {
+        if (!$this->hasErrors()) {
+            $user = $this->getUser();
+            if ($user && $user->isVerificationExpired()) {
+                $this->addError($attribute, Yii::t('app', 'Your email has not been verified within the 7-day grace period. Please contact the administrator.'));
+            }
+        }
+    }
+
+    public function validateOtp($attribute, $params)
+    {
+        if (!$this->hasErrors()) {
+            $user = $this->getUser();
+            if (!$user || !Token::validateOTP($user->id, $this->otp)) {
+                $this->addError($attribute, Yii::t('app', 'Invalid verification code.'));
+            }
+        }
     }
 
     /**
@@ -79,9 +109,21 @@ class LoginForm extends Model
     public function validatePassword($attribute, $params)
     {
         if (!$this->hasErrors()) {
+            // 速率限制：每个IP在5分钟内最多尝试5次
+            $ip = Yii::$app->getRequest()->getUserIP();
+            try {
+                RateLimiter::checkLimit("login_{$ip}", 5, 300);
+            } catch (\yii\web\TooManyRequestsHttpException $e) {
+                $this->addError($attribute, $e->getMessage());
+                return;
+            }
+            
             $user = $this->getUser();
             if (!$user || !$user->validatePassword($this->password)) {
                 $this->addError($attribute, Yii::t('app', 'The username or password you entered is incorrect.'));
+            } else {
+                // 登录成功，重置速率限制
+                RateLimiter::resetLimit("login_{$ip}");
             }
         }
     }
@@ -123,7 +165,7 @@ class LoginForm extends Model
     public function getUser()
     {
         if ($this->_user === false) {
-            $this->_user = User::findByUsername($this->username);
+            $this->_user = User::findByEmail($this->username);
         }
 
         return $this->_user;

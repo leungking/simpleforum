@@ -27,6 +27,7 @@ class User extends ActiveRecord implements IdentityInterface
 //    const USER_MENTION_PATTERN = '/\B\@([a-zA-Z0-9\x{4e00}-\x{9fa5}]{4,16})/u';
     const USERNAME_PATTERN = '/^[a-zA-Z0-9_]*$/u';
     const USER_MENTION_PATTERN = '/\B\@([a-zA-Z0-9_]{4,16})/u';
+    const VERIFICATION_GRACE_PERIOD = 7 * 24 * 3600; // 7 days in seconds
 
     public static $roleOptions = [
         0 => 'Member Group',
@@ -254,6 +255,14 @@ class User extends ActiveRecord implements IdentityInterface
         return ($this->score + static::getCost($action))>=0;
     }
 
+    public function isVerificationExpired()
+    {
+        if ($this->status == self::STATUS_INACTIVE) {
+            return (time() - $this->created_at) > self::VERIFICATION_GRACE_PERIOD;
+        }
+        return false;
+    }
+
     /**
      * @inheritdoc
      */
@@ -411,7 +420,7 @@ class User extends ActiveRecord implements IdentityInterface
                     'action' => History::ACTION_COMMENTED,
                     'action_time' => $comment->created_at,
                     'target' => $comment->topic_id,
-                    'ext' => json_encode(['topic_id'=>$comment->topic_id, 'title'=>$comment->topic->title, 'commented_by'=>$this->username, 'score'=>$author->score, 'cost'=>$commentedCost]),
+                    'ext' => json_encode(['topic_id'=>$comment->topic_id, 'title'=>$comment->topic->title, 'commented_by'=>['id'=>$this->id, 'name'=>$this->name], 'score'=>$author->score, 'cost'=>$commentedCost]),
                 ]))->save(false);
             }
         }
@@ -542,7 +551,7 @@ class User extends ActiveRecord implements IdentityInterface
                 $thanksCost = abs($cost);
 
                 $author->updateCounters(['score' => $thanksCost]);
-                $ext = ['thank_by'=>$this->username, 'score'=>$author->score, 'cost'=>$thanksCost];
+                $ext = ['thank_by'=>['id'=>$this->id, 'name'=>$this->name], 'score'=>$author->score, 'cost'=>$thanksCost];
                 if ($type == 'topic') {
                     $ext = $ext+['topic_id'=>$target->id, 'title'=>$target->title];
                 } else {
@@ -556,7 +565,7 @@ class User extends ActiveRecord implements IdentityInterface
                     'ext' => json_encode($ext),
                 ]))->save(false);
 
-                $ext = ['thank_to'=>$author->username, 'score'=>$this->score, 'cost'=>$cost];
+                $ext = ['thank_to'=>['id'=>$author->id, 'name'=>$author->name], 'score'=>$this->score, 'cost'=>$cost];
                 if ($type == 'topic') {
                     $ext = $ext+['topic_id'=>$target->id, 'title'=>$target->title];
                 } else {

@@ -262,7 +262,7 @@ class ServiceController extends AppController
 
     }
 
-    public function actionSms($id=0, $to='')
+    public function actionSms($id=0, $uid=0)
     {
         /** @var \app\models\User $me */
         $me = Yii::$app->getUser()->getIdentity();
@@ -275,16 +275,17 @@ class ServiceController extends AppController
         }
         $model = new SendMsgForm();
         $id = intval($id);
+        $uid = intval($uid);
         $sms = null;
         if( $id>0 ) {
             $sms = Notice::findOne($id);
             if ( !$sms ) {
                 throw new NotFoundHttpException(Yii::t('app', 'Parameter error'));
             } else {
-                $model->username = $sms->source->username;
+                $model->user_id = $sms->source_id;
             }
-        } else if (!empty($to)) {
-            $model->username = $to;
+        } else if ($uid > 0) {
+            $model->user_id = $uid;
         }
         if ($model->load(Yii::$app->getRequest()->post()) && $model->validate()) {
             if ( $model->apply() ) {

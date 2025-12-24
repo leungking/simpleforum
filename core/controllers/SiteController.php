@@ -216,12 +216,37 @@ class SiteController extends AppController
         }
 
         $model = new LoginForm();
-        if ($model->load(Yii::$app->getRequest()->post()) && $model->login()) {
+        $post = Yii::$app->getRequest()->post();
+        if (isset($post['login-type']) && $post['login-type'] === 'otp') {
+            $model->scenario = 'otp-login';
+        }
+
+        if ($model->load($post) && $model->login()) {
             return $this->goBack();
         } else {
             return $this->render('login', [
                 'model' => $model,
             ]);
+        }
+    }
+
+    public function actionSendOtp()
+    {
+        Yii::$app->getResponse()->format = \yii\web\Response::FORMAT_JSON;
+        $email = Yii::$app->getRequest()->post('email');
+        if (empty($email)) {
+            return ['status' => 'error', 'msg' => Yii::t('app', 'Email cannot be blank.')];
+        }
+
+        $user = User::findByEmail($email);
+        if (!$user) {
+            return ['status' => 'error', 'msg' => Yii::t('app', 'User not found.')];
+        }
+
+        if (Token::sendOTP($user)) {
+            return ['status' => 'success', 'msg' => Yii::t('app', 'Verification code has been sent to your email.')];
+        } else {
+            return ['status' => 'error', 'msg' => Yii::t('app', 'Failed to send verification code.')];
         }
     }
 
@@ -309,19 +334,10 @@ class SiteController extends AppController
         }
 
         if ( Yii::$app->getRequest()->getIsPost() ) {
-            $token->status = Token::STATUS_USED;
+            $token->status = Token::STATUS_PENDING_APPROVAL;
             $token->save(false);
 
-            $model = new ChangeEmailForm(['scenario' => ChangeEmailForm::SCENARIO_VERIFY_EMAIL, 'email'=>$token->ext]);
-            if ( !$model->validate() ) {
-                 $result = ['title'=>Yii::t('app', 'Email Change Failed'), 'status'=>'warning', 'msg'=>Yii::t('app', '{attribute} is already in use.', ['attribute' => Yii::t('app', 'Email') . '(' . $token->ext . ')'])];
-            } else {
-                $user = $token->user;
-                $user->email = $token->ext;
-                $user->save(false);
-
-                $result = ['title'=>Yii::t('app', 'Email Change Successfully'), 'status'=>'success', 'msg'=>Yii::t('app', 'Your email address has been changed.')];
-            }
+            $result = ['title'=>Yii::t('app', 'Email Verification Succeeded'), 'status'=>'success', 'msg'=>Yii::t('app', 'Your email has been verified. Please wait for administrator approval.')];
         } else {
                 $result = [
                     'title'=>Yii::t('app', 'Email Change Verification'),
