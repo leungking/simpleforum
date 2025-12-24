@@ -74,6 +74,8 @@ return [
 /* setting/all */
     'Forum Manager' => '论坛管理',
     'Settings' => '配置管理',
+    'Topics' => '文章管理',
+    'Topic Manager' => '文章集中管理',
     'Third-party login' => '第三方帐号登录管理',
     'Nodes' => '节点管理',
     'Navigations' => '导航管理',

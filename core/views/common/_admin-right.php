@@ -13,6 +13,7 @@ $items = [
     'Nodes'=>['admin/node'],
     'Navigations'=>['admin/navi'],
     'Members'=>['admin/user'],
+    'Topics'=>['admin/topic-manager/index'],
     'Tags'=>['admin/tag'],
     'Points'=>['admin/user/charge'],
     'Links'=>['admin/link'],
