@@ -45,6 +45,8 @@ echo Alert::widget([
 <div class="tab-content" id="loginTabContent">
   <div class="tab-pane fade show active" id="password-login" role="tabpanel" aria-labelledby="password-tab">
     <?php $form = ActiveForm::begin([
+              'action' => ['site/login'],
+              'method' => 'post',
               'layout' => 'horizontal',
               'id' => 'form-login-password',
               'fieldConfig' => [
@@ -78,6 +80,8 @@ echo Alert::widget([
   </div>
   <div class="tab-pane fade" id="otp-login" role="tabpanel" aria-labelledby="otp-tab">
     <?php $form = ActiveForm::begin([
+              'action' => ['site/login'],
+              'method' => 'post',
               'layout' => 'horizontal',
               'id' => 'form-login-otp',
               'fieldConfig' => [
@@ -93,19 +97,28 @@ echo Alert::widget([
                 <label class="col-form-label col-sm-3 text-sm-right" for="loginform-otp"><?php echo Yii::t('app', 'Verification Code'); ?></label>
                 <div class="col-sm-9">
                     <div class="input-group">
-                        <?php echo Html::activeTextInput($model, 'otp', ['class' => 'form-control', 'id' => 'loginform-otp']); ?>
+                        <?php
+                        $otpInputOptions = ['class' => 'form-control', 'id' => 'loginform-otp'];
+                        if ($model->hasErrors('otp')) {
+                            $otpInputOptions['class'] .= ' is-invalid';
+                        }
+                        echo Html::activeTextInput($model, 'otp', $otpInputOptions);
+                        ?>
                         <div class="input-group-append">
                             <button class="btn btn-outline-secondary" type="button" id="send-otp-btn"><?php echo Yii::t('app', 'Send Code'); ?></button>
                         </div>
                     </div>
-                    <div class="invalid-feedback"></div>
+                    <div class="invalid-feedback" style="display:block;">
+                        <?php echo Html::encode($model->getFirstError('otp')); ?>
+                    </div>
                 </div>
             </div>
             <?php echo $form->field($model, 'rememberMe', [
+                           'options' => ['id' => 'field-remember-otp'],
                            'horizontalCssClasses' => [
                                'offset' => 'offset-sm-3',
                            ]
-                       ])->checkbox(); ?>
+                       ])->checkbox(['id' => 'loginform-rememberme-otp']); ?>
             <div class="form-group">
                 <div class="offset-sm-3 col-sm-9">
                 <?php echo Html::submitButton(Yii::t('app', 'Sign in'), ['class' => 'btn sf-btn', 'name' => 'login-button']); ?>

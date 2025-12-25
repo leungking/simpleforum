@@ -28,6 +28,7 @@ class SignupForm extends Model
     public $password;
     public $password_repeat;
     public $invite_code;
+    public $email_code; // Email verification code
     public $action;
     public $captcha;
     private $_inviteCode = null;
@@ -39,15 +40,17 @@ class SignupForm extends Model
     {
         $rules = [
             [
-                ['email', 'name', 'invite_code'],
+                ['email', 'name', 'invite_code', 'email_code'],
                 'filter',
                 'filter' => function($value){ return $value === null ? '' : trim($value); }
             ],
-            [['email', 'name', 'password', 'password_repeat'], 'required'],
+            [['email', 'password', 'password_repeat', 'email_code'], 'required'],
             [['email'], 'filter', 'filter' => 'strtolower'],
             ['name', 'string', 'length' => [4, 40]],
             ['name', 'nameFilter'],
             ['email', 'email'],
+            ['email_code', 'string', 'length' => [4, 8]],
+            ['email_code', 'validateEmailCode'],
             ['password', 'string', 'length' => [8, 32]], // 增强密码长度要求
             ['password', 'validatePasswordStrength'], // 添加密码强度验证
             ['password_repeat', 'compare', 'skipOnEmpty'=>false, 'compareAttribute'=>'password', 'message' => Yii::t('app', 'Password confirmation doesn\'t match the password.')],
@@ -128,6 +131,37 @@ class SignupForm extends Model
         }
     }
 
+    public function validateEmailCode($attribute, $params)
+    {
+        if ($this->action === self::ACTION_AUTH_SIGNUP) {
+            return; // Skip validation for auth signup
+        }
+        
+        $token = Token::find()
+            ->where([
+                'ext' => $this->email,
+                'type' => Token::TYPE_EMAIL,
+                'status' => Token::STATUS_VALID,
+            ])
+            ->andWhere(['>=', 'expires', time()])
+            ->orderBy(['created_at' => SORT_DESC])
+            ->one();
+        
+        if (!$token) {
+            $this->addError($attribute, Yii::t('app', 'Verification code is invalid or has expired.'));
+            return;
+        }
+        
+        if ($token->token !== $this->$attribute) {
+            $this->addError($attribute, Yii::t('app', 'Verification code is incorrect.'));
+            return;
+        }
+        
+        // Mark token as used
+        $token->status = Token::STATUS_USED;
+        $token->save(false);
+    }
+
     public function validateInviteCode($attribute, $params)
     {
         $this->_inviteCode = Token::find()
@@ -148,6 +182,7 @@ class SignupForm extends Model
             'username' => Yii::t('app', 'Username'),
             'name' => Yii::t('app', 'Name'),
             'email' => Yii::t('app', 'Email'),
+            'email_code' => Yii::t('app', 'Email Verification Code'),
             'password' => Yii::t('app', 'Password'),
             'password_repeat' => Yii::t('app', 'Confirm password'),
             'invite_code' => Yii::t('app', 'Invite code'),
@@ -175,6 +210,14 @@ class SignupForm extends Model
                 $username = substr($username, 0, 12);
             } while (User::find()->where(['username' => $username])->exists());
             
+            // Generate random display name if not provided
+            if (empty($this->name)) {
+                $adjectives = ['Happy', 'Clever', 'Bright', 'Swift', 'Brave', 'Kind', 'Wise', 'Cool', 'Smart', 'Quick'];
+                $nouns = ['Panda', 'Tiger', 'Eagle', 'Dragon', 'Phoenix', 'Wolf', 'Lion', 'Bear', 'Fox', 'Hawk'];
+                $randomName = $adjectives[array_rand($adjectives)] . $nouns[array_rand($nouns)] . rand(100, 999);
+                $this->name = $randomName;
+            }
+            
             $user->username = strtolower($username);
             $user->email = $this->email;
             $user->name = $this->name;
@@ -182,20 +225,20 @@ class SignupForm extends Model
             $user->generateAuthKey();
             $user->score = User::getCost('reg');
             $user->avatar = 'avatar/0_{size}.png';
+            
+            // Set status based on verification
             if ( $this->action != self::ACTION_AUTH_SIGNUP ) {
-                // Force email verification
-                $user->status = User::STATUS_INACTIVE;
+                // Email already verified via code, set as active
+                $user->status = User::STATUS_ACTIVE;
             } else {
                 $user->status = User::STATUS_ACTIVE;
             }
+            
             if ($user->save()) {
                 if( $this->_inviteCode ) {
                     $this->_inviteCode->status = Token::STATUS_USED;
                     $this->_inviteCode->ext = json_encode(['id'=>$user->id, 'username'=>$user->username]);
                     $this->_inviteCode->save();
-                }
-                if ( $this->action != self::ACTION_AUTH_SIGNUP ) {
-                    Token::sendActivateMail($user);
                 }
                 return $user;
             }

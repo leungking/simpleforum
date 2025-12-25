@@ -1,8 +1,8 @@
 <?php
 /**
- * @link https://610000.xyz/
- * @copyright Copyright (c) 2015 SimpleForum
- * @author Leon admin@610000.xyz
+ * RSS采集器控制器
+ * Based on SimpleForum (https://github.com/SimpleForum/SimpleForum)
+ * Modified for https://610000.xyz/
  */
 
 namespace app\controllers\admin;
@@ -66,6 +66,9 @@ class RssCollectorController extends CommonController
             $keywords = array_map('trim', $keywords);
             $keywords = array_filter($keywords);
 
+            // 增加执行时间限制，避免超时
+            set_time_limit(60);
+
             try {
                 $opts = [
                     "http" => [
@@ -76,7 +79,16 @@ class RssCollectorController extends CommonController
                     ]
                 ];
                 $context = stream_context_create($opts);
-                $content = @file_get_contents($url, false, $context);
+                set_error_handler(function() {});
+                $fp = fopen($url, 'r', false, $context);
+                if ($fp) {
+                    stream_set_timeout($fp, 15);
+                    $content = stream_get_contents($fp);
+                    fclose($fp);
+                } else {
+                    $content = false;
+                }
+                restore_error_handler();
                 
                 if (!$content) {
                     throw new \Exception("Failed to fetch content from $url (Content is empty)");
@@ -117,8 +129,30 @@ class RssCollectorController extends CommonController
                 $items = [];
                 if (isset($xml->channel->item)) { // RSS 2.0
                     foreach ($xml->channel->item as $item) {
-                        $description = (string)$item->description;
+                        // Try to get full content from content:encoded
+                        $contentEncoded = '';
+                        $contentNs = $item->children('http://purl.org/rss/1.0/modules/content/');
+                        if (isset($contentNs->encoded)) {
+                            $contentEncoded = (string)$contentNs->encoded;
+                        }
+                        
+                        $description = !empty($contentEncoded) ? $contentEncoded : (string)$item->description;
                         $media = $this->extractMedia($description, $item);
+
+                        // Check for enclosure
+                        if (isset($item->enclosure)) {
+                            $attributes = $item->enclosure->attributes();
+                            $url = (string)$attributes->url;
+                            $type = (string)$attributes->type;
+                            if (strpos($type, 'image') !== false) {
+                                $media[] = ['type' => 'image', 'url' => $url];
+                            }
+                        }
+
+                        // Dedupe media (HTML + enclosure)
+                        if (!empty($media)) {
+                            $media = $this->dedupeMedia($media);
+                        }
 
                         $items[] = [
                             'title' => (string)$item->title,
@@ -138,6 +172,9 @@ class RssCollectorController extends CommonController
 
                         $description = (string)$entry->content ?: (string)$entry->summary;
                         $media = $this->extractMedia($description, $entry);
+                        if (!empty($media)) {
+                            $media = $this->dedupeMedia($media);
+                        }
 
                         $items[] = [
                             'title' => (string)$entry->title,
@@ -185,7 +222,7 @@ class RssCollectorController extends CommonController
                         'node_id' => $nodeId,
                         'user_id' => $userId,
                         'title' => $title,
-                        'description' => $cleanedDescription,
+                        'description' => $description, // Use full description/content
                         'media' => $item['media'],
                     ];
                     $feedCount++;
@@ -203,7 +240,7 @@ class RssCollectorController extends CommonController
             $isMarkdown = ($editor == 'SmdEditor' || $editor == 'Vditor');
 
             shuffle($allItems);
-            foreach ($allItems as $item) {
+                    foreach ($allItems as $item) {
                 $topic = new Topic([
                     'scenario' => Topic::SCENARIO_ADD,
                     'node_id' => $item['node_id'],
@@ -214,18 +251,40 @@ class RssCollectorController extends CommonController
                 $topic->tags = $this->extractKeywords($item['title'], $item['description']);
 
                 $finalContent = $item['description'];
+                
+                // Extract existing images from description to avoid duplicates
+                $existingImages = [];
+                if (preg_match_all('/<img[^>]+src=["\']([^"\']+)["\'][^>]*>/i', $finalContent, $imgMatches)) {
+                    $existingImages = $imgMatches[1];
+                }
+                
                 if (!empty($item['media'])) {
+                    $imageAdded = false;
+                    $videoAdded = false;
                     foreach ($item['media'] as $media) {
-                        if ($media['type'] == 'image') {
-                            if ($isMarkdown) {
-                                $finalContent .= "\n\n![](" . $media['url'] . ")";
-                            } else {
-                                $finalContent .= "\n\n[img]" . $media['url'] . "[/img]";
+                        if ($media['type'] == 'image' && !$imageAdded) {
+                            // Only add if not already in content
+                            if (!in_array($media['url'], $existingImages)) {
+                                $imageAdded = true;
+                                if ($isMarkdown) {
+                                    $finalContent .= "\n\n![](" . $media['url'] . ")";
+                                } else {
+                                    $finalContent .= "\n\n[img]" . $media['url'] . "[/img]";
+                                }
                             }
-                        } else if ($media['type'] == 'video') {
+                        } else if ($media['type'] == 'video' && !$videoAdded) {
+                            $videoAdded = true;
                             $finalContent .= "\n\n" . $media['url'];
                         }
+                        if ($imageAdded && $videoAdded) {
+                            break; // only first image and first video
+                        }
                     }
+                }
+
+                // If using Markdown editor, convert HTML to Markdown
+                if ($isMarkdown) {
+                    $finalContent = $this->htmlToMarkdown($finalContent);
                 }
 
                 $topicContent = new TopicContent([
@@ -267,6 +326,8 @@ class RssCollectorController extends CommonController
         // Extract images from HTML
         if (preg_match_all('/<img[^>]+src=["\']([^"\']+)["\']/i', $html, $matches)) {
             foreach ($matches[1] as $url) {
+                $url = $this->normalizeMediaUrl($url);
+                if (!$url) { continue; }
                 $isTracking = false;
                 foreach ($trackingPatterns as $pattern) {
                     if (strpos($url, $pattern) !== false) {
@@ -285,7 +346,8 @@ class RssCollectorController extends CommonController
         if (isset($mediaNs->content)) {
             foreach ($mediaNs->content as $content) {
                 $attributes = $content->attributes();
-                $url = (string)$attributes->url;
+                $url = $this->normalizeMediaUrl((string)$attributes->url);
+                if (!$url) { continue; }
                 $type = (string)$attributes->type;
                 if (strpos($type, 'image') !== false) {
                     $media[] = ['type' => 'image', 'url' => $url];
@@ -298,7 +360,10 @@ class RssCollectorController extends CommonController
         // Extract YouTube/Vimeo etc from links or iframes
         if (preg_match_all('/https?:\/\/(www\.)?(youtube\.com|youtu\.be|v\.qq\.com|v\.youku\.com|player\.vimeo\.com|bilibili\.com\/video\/)[^\s"\'<>]+/i', $html, $matches)) {
             foreach ($matches[0] as $url) {
-                $media[] = ['type' => 'video', 'url' => $url];
+                $url = $this->normalizeMediaUrl($url);
+                if ($url) {
+                    $media[] = ['type' => 'video', 'url' => $url];
+                }
             }
         }
 
@@ -313,6 +378,49 @@ class RssCollectorController extends CommonController
         }
 
         return $uniqueMedia;
+    }
+
+    private function dedupeMedia($media)
+    {
+        $seen = [];
+        $unique = [];
+        foreach ($media as $m) {
+            $url = isset($m['url']) ? trim($m['url']) : '';
+            if ($url === '') {
+                continue;
+            }
+
+            // Normalize by filename (ignore query) to drop duplicates with same basename
+            $parsed = parse_url($url);
+            $path = isset($parsed['path']) ? $parsed['path'] : $url;
+            $basename = strtolower(basename($path));
+            $key = $basename ?: strtolower($url);
+
+            if (!isset($seen[$key])) {
+                $seen[$key] = true;
+                $unique[] = $m;
+            }
+        }
+        return $unique;
+    }
+
+    private function normalizeMediaUrl($url)
+    {
+        $url = trim($url);
+        if ($url === '') {
+            return '';
+        }
+        // Upgrade to https to avoid mixed-content; drop protocol-relative to https
+        if (strpos($url, '//') === 0) {
+            $url = 'https:' . $url;
+        } else if (stripos($url, 'http://') === 0) {
+            $url = 'https://' . substr($url, 7);
+        }
+        // Skip data URIs or javascript
+        if (stripos($url, 'data:') === 0 || stripos($url, 'javascript:') === 0) {
+            return '';
+        }
+        return $url;
     }
 
     private function cleanDescription($text)
@@ -353,8 +461,27 @@ class RssCollectorController extends CommonController
             $counts[$word]++;
         }
         arsort($counts);
-        $topWords = array_slice(array_keys($counts), 0, 5);
+        $topWords = array_slice(array_keys($counts), 0, 3);
         return implode(',', $topWords);
+    }
+    
+    private function htmlToMarkdown($html)
+    {
+        // Remove editor footer blocks
+        $html = preg_replace('/<div class="editor">[\s\S]*?<\/div>/i', '', $html);
+        // Remove inline styles
+        $html = preg_replace('/\sstyle="[^"]*"/i', '', $html);
+        // Convert images
+        $html = preg_replace_callback('/<img[^>]+src=["\']([^"\']+)["\'][^>]*>/i', function($m){
+            return '![](' . $m[1] . ')';
+        }, $html);
+        // Convert paragraphs to line breaks
+        $html = preg_replace('/<\/?p[^>]*>/i', "\n\n", $html);
+        // Strip remaining tags
+        $text = strip_tags($html);
+        // Normalize whitespace
+        $text = preg_replace("/\n{3,}/", "\n\n", $text);
+        return trim($text);
     }
 }
 

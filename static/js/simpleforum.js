@@ -58,6 +58,11 @@
 }));
 /* jquery.focus.js end */
 
+// Global shim for legacy scripts expecting `browser`
+if (typeof window !== 'undefined' && typeof window.browser === 'undefined') {
+    window.browser = {};
+}
+
 var replyTo = function(username) {
     var atString = '@' + username + "\u00a0", editorName, comment, oldContent, newContent;
     if($('.wysibb-body').length>0) {
@@ -262,10 +267,11 @@ $(function(){
         self = $(this);
         params = self.attr('id').split('-');
         thanks = $('input.thanks-author:checked').prop("checked")===true?1:0;
+        var csrf = $('meta[name="csrf-token"]').attr('content');
         $.ajax({
             url: baseUrl+'/service/good',
             type: "POST",
-            data: { type:params[1], id:params[2], thanks:thanks },
+            data: { type:params[1], id:params[2], thanks:thanks, _csrf: csrf },
             success: function (data) {
                 if(data.result == 1) {
                     $('#'+self.attr('id')+' .good-num').text(data.count);
@@ -289,10 +295,11 @@ $(function(){
         action = params[0];
         type = params[1];
         id = params[2];
+        var csrf = $('meta[name="csrf-token"]').attr('content');
         $.ajax({
             url: baseUrl+'/service/'+action,
             type: "POST",
-            data: { type:type, id:id },
+            data: { type:type, id:id, _csrf: csrf },
             success: function (data) {
                 if(data.result == 1) {
                     count = $(".favorite-num", self).text();
@@ -314,14 +321,7 @@ $(function(){
         });
     });
 });
-$(function(){
-    $('.img-zoom img.lazy').each(function( index ) {
-        if ( $(this).parents('a').length == 0 ) {
-            href = $(this).attr('data-original')?$(this).attr('data-original'):$(this).attr('src');
-            $(this).wrap('<a href="'+href+'" data-lightbox="roadtrip"></a>');
-        }
-    });
-});
+// 图片lightbox链接由Parser直接生成，此处不再需要处理
 
 $(function(){
     var pocounter;

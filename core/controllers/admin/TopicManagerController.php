@@ -1,8 +1,8 @@
 <?php
 /**
- * @link https://610000.xyz/
- * @copyright Copyright (c) 2015 SimpleForum
- * @author Leon admin@610000.xyz
+ * 主题管理控制器
+ * Based on SimpleForum (https://github.com/SimpleForum/SimpleForum)
+ * Modified for https://610000.xyz/
  */
 
 namespace app\controllers\admin;

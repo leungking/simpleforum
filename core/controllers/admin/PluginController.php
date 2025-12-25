@@ -1,8 +1,8 @@
 <?php
 /**
- * @link http://simpleforum.org/
- * @copyright Copyright (c) 2015 SimpleForum
- * @author Jiandong Yu admin@simpleforum.org
+ * 插件管理控制器 - 添加异常处理
+ * Based on SimpleForum (https://github.com/SimpleForum/SimpleForum)
+ * Modified for https://610000.xyz/
  */
 
 namespace app\controllers\admin;
@@ -196,13 +196,21 @@ class PluginController extends CommonController
     {
         $pluginsDir = Yii::getAlias('@app/plugins');
         if (!file_exists($pluginsDir)) {
-            return [];
+            self::$installable = [];
+            return;
         }
         $plugins = array_diff(scandir($pluginsDir), ['.', '..']);
+        self::$installable = [];
         foreach ($plugins as $pid) {
-            $plugin = self::getInstallablePlugin($pid);
-            if( $plugin ) {
-                self::$installable[$pid] = $plugin;
+            try {
+                $plugin = self::getInstallablePlugin($pid);
+                if( $plugin ) {
+                    self::$installable[$pid] = $plugin;
+                }
+            } catch (\Throwable $e) {
+                // 记录错误但继续处理其他插件
+                Yii::error("Failed to load plugin {$pid}: " . $e->getMessage(), __METHOD__);
+                continue;
             }
         }
     }

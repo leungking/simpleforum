@@ -1,4 +1,10 @@
 <?php
+/**
+ * 七牛SDK配置 - 添加$zone属性声明 (PHP 8.x兼容)
+ * Based on SimpleForum (https://github.com/SimpleForum/SimpleForum)
+ * Modified for https://610000.xyz/
+ */
+
 namespace Qiniu;
 
 final class Config
@@ -20,6 +26,7 @@ final class Config
 
     // Zone 空间对应的存储区域
     public $region;
+    public $zone;
     //BOOL 是否使用https域名
     public $useHTTPS;
     //BOOL 是否使用CDN加速上传域名
@@ -28,7 +35,7 @@ final class Config
     private $regionCache;
 
     // 构造函数
-    public function __construct(Region $z = null)
+    public function __construct(?Region $z = null)
     {
         $this->zone = $z;
         $this->useHTTPS = false;

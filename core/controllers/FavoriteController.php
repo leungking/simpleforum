@@ -45,8 +45,8 @@ class FavoriteController extends AppController
         $me = Yii::$app->getUser()->getIdentity();
 
         $query = Favorite::find()->where(['type'=>Favorite::TYPE_NODE, 'source_id'=>$me->id]);
-//      $countQuery = clone $query;
-        $pages = new Pagination(['totalCount' => $me->userInfo->favorite_node_count, 'pageSize' => $this->settings['list_pagesize'], 'pageParam'=>'p']);
+        $favCount = $me->userInfo ? $me->userInfo->favorite_node_count : 0;
+        $pages = new Pagination(['totalCount' => $favCount, 'pageSize' => $this->settings['list_pagesize'], 'pageParam'=>'p']);
         $nodes = $query->orderBy(['id'=>SORT_DESC])->offset($pages->offset)
                 ->innerJoinWith(['node'])
                 ->limit($pages->limit)
@@ -64,8 +64,8 @@ class FavoriteController extends AppController
         $me = Yii::$app->getUser()->getIdentity();
 
         $query = Favorite::find()->where(['type'=>Favorite::TYPE_TOPIC, 'source_id'=>$me->id]);
-//      $countQuery = clone $query;
-        $pages = new Pagination(['totalCount' => $me->userInfo->favorite_topic_count, 'pageSize' => $this->settings['list_pagesize'], 'pageParam'=>'p']);
+        $favCount = $me->userInfo ? $me->userInfo->favorite_topic_count : 0;
+        $pages = new Pagination(['totalCount' => $favCount, 'pageSize' => $this->settings['list_pagesize'], 'pageParam'=>'p']);
         $topics = $query->orderBy(['id'=>SORT_DESC])->offset($pages->offset)
                 ->innerJoinWith(['topic'])
                 ->with(['topic.author','topic.lastReply','topic.node'])

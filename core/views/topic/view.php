@@ -101,7 +101,7 @@ $topicTitle = Html::encode($topic['title']);
         ?></small>
     </div>
 <?php if(!empty($topic['content']['content']) || !empty($topic['tags'])) : ?>
-    <div class="card-body img-zoom sf-topic-content link-external word-wrap <?php echo $whiteWrapClass; ?>">
+    <div class="card-body sf-topic-content link-external word-wrap <?php echo $whiteWrapClass; ?>">
         <?php
         if(!empty($topic['content']['content'])) {
             $topicShow = true;
@@ -149,7 +149,7 @@ echo implode('', $userOp) ;
 </div>
 
 <?php if( intval($topic['comment_count']) > 0 ) : ?>
-<ul class="list-group sf-box img-zoom sf-box-comments">
+<ul class="list-group sf-box sf-box-comments">
     <li class="list-group-item sf-box-header">
 <?php echo Yii::t('app', '{n, plural, =0{no comments} =1{# comment} other{# comments}}', ['n'=>intval($topic['comment_count'])]), '&nbsp;|&nbsp;' . Yii::t('app', 'until {time}', ['time'=>$formatter->asDateTime($topic['replied_at'], 'y-MM-dd HH:mm:ssZ')]); ?>
     </li>

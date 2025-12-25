@@ -102,6 +102,10 @@ class SiteController extends AppController
             if ($auth) { // login
                 $user = $auth->user;
                 $me->login($user);
+                if ($user->isWatingActivation() || $user->isWatingVerification()) {
+                    return $this->redirect(['my/settings']);
+                }
+                return $this->goHome();
             } else { // signup
                 $attr['source'] = $source;
 //              $attr['sourceName'] = $client->defaultName();
@@ -248,6 +252,66 @@ class SiteController extends AppController
         } else {
             return ['status' => 'error', 'msg' => Yii::t('app', 'Failed to send verification code.')];
         }
+    }
+
+    public function actionSendSignupCode()
+    {
+        Yii::$app->getResponse()->format = \yii\web\Response::FORMAT_JSON;
+        $email = Yii::$app->getRequest()->post('email');
+        
+        if (empty($email)) {
+            return ['status' => 'error', 'msg' => Yii::t('app', 'Email cannot be blank.')];
+        }
+        
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return ['status' => 'error', 'msg' => Yii::t('app', 'Invalid email format.')];
+        }
+        
+        // Check if email already exists
+        if (User::findByEmail($email)) {
+            return ['status' => 'error', 'msg' => Yii::t('app', 'This email is already registered.')];
+        }
+        
+        // Generate 6-digit code
+        $code = sprintf('%06d', mt_rand(0, 999999));
+        
+        // Create token
+        $token = new Token();
+        $token->user_id = 0; // No user yet
+        $token->token = $code;
+        $token->type = Token::TYPE_EMAIL;
+        $token->status = Token::STATUS_VALID;
+        $token->expires = time() + 600; // 10 minutes
+        $token->ext = $email; // Store email in ext field
+        
+        if ($token->save()) {
+            // Send email with template fallback
+            try {
+                $view = '@app/mail/' . Yii::$app->language . '/signup-code';
+                $viewFile = \Yii::getAlias($view . '.php');
+                if (!is_file($viewFile)) {
+                    $view = '@app/mail/en-US/signup-code';
+                }
+
+                $fromEmail = Yii::$app->params['settings']['admin_email'] ?? ('no-reply@' . parse_url(Yii::$app->request->hostInfo, PHP_URL_HOST));
+                $siteName = Yii::$app->params['settings']['site_name'] ?? 'SimpleForum';
+
+                $settings = Yii::$app->params['settings'];
+                $fromMailbox = $settings['mailer_username'] ?? $fromEmail;
+                Yii::$app->mailer->compose($view, ['code' => $code])
+                    ->setFrom([$fromMailbox => $siteName])
+                    ->setTo($email)
+                    ->setSubject(Yii::t('app', 'Email Verification Code'))
+                    ->send();
+                
+                return ['status' => 'success', 'msg' => Yii::t('app', 'Verification code has been sent to your email.')];
+            } catch (\Exception $e) {
+                \Yii::error('Signup code mail send failed: ' . $e->getMessage(), __METHOD__);
+                return ['status' => 'error', 'msg' => Yii::t('app', 'Failed to send verification code.')];
+            }
+        }
+        
+        return ['status' => 'error', 'msg' => Yii::t('app', 'Failed to send verification code.')];
     }
 
     public function actionOffline()

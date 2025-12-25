@@ -1,8 +1,8 @@
 <?php
 /**
- * @link https://610000.xyz/
- * @copyright Copyright (c) 2015 SimpleForum
- * @author Leon admin@610000.xyz
+ * 主题批量管理视图
+ * Based on SimpleForum (https://github.com/SimpleForum/SimpleForum)
+ * Modified for https://610000.xyz/
  */
 
 use yii\helpers\Html;
@@ -53,11 +53,11 @@ $this->title = Yii::t('app/admin', 'Topic Manager');
                     <td><input type="checkbox" name="ids[]" value="<?php echo $topic->id; ?>" class="topic-checkbox"></td>
                     <td><?php echo $topic->id; ?></td>
                     <td><?php echo Html::a(Html::encode($topic->title), ['topic/view', 'id' => $topic->id], ['target' => '_blank']); ?></td>
-                    <td><?php echo Html::encode($topic->node->name); ?></td>
-                    <td><?php echo Html::encode($topic->author->username); ?></td>
+                    <td><?php echo Html::encode($topic->node ? $topic->node->name : '-'); ?></td>
+                    <td><?php echo Html::encode($topic->author ? $topic->author->username : '-'); ?></td>
                     <td><?php echo Yii::$app->getFormatter()->asDatetime($topic->created_at, 'short'); ?></td>
                     <td>
-                        <?php echo Html::a(Yii::t('app', 'Edit'), ['admin/topic/edit', 'id' => $topic->id], ['class' => 'btn btn-sm btn-primary']); ?>
+                        <?php echo Html::a(Yii::t('app', 'Edit'), ['topic/edit', 'id' => $topic->id], ['class' => 'btn btn-sm btn-primary']); ?>
                         <?php echo Html::a(Yii::t('app', 'Delete'), ['admin/topic-manager/delete', 'id' => $topic->id], [
                             'class' => 'btn btn-sm btn-danger',
                             'data' => [

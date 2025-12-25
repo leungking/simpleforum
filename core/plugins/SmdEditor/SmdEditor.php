@@ -1,8 +1,8 @@
 <?php
 /**
- * @link http://simpleforum.org/
- * @copyright Copyright (c) 2015 SimpleForum
- * @author Jiandong Yu admin@simpleforum.org
+ * Simple Markdown Editor - 修复uninstall方法
+ * Based on SimpleForum (https://github.com/SimpleForum/SimpleForum)
+ * Modified for https://610000.xyz/
  */
 
 namespace app\plugins\SmdEditor;
@@ -46,7 +46,7 @@ class SmdEditor extends Editor implements PluginInterface
             unset($option['SmdEditor']);
             $setting->option = json_encode($option);
             $setting->save();
-    }
+        }
         return true;
     }
 

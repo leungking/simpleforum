@@ -86,8 +86,11 @@ if ( $session->hasFlash('editProfileNG') ) {
             </div>
         </div>
         <?php echo $form->field($epModel, 'name')->textInput(['maxlength'=>40, 'value'=>$me->name]); ?>
-        <?php echo $form->field($epModel, 'website')->textInput(['maxlength'=>100, 'value'=>$me->userInfo->website]); ?>
-        <?php echo $form->field($epModel, 'about')->textArea(['maxlength'=>255, 'value'=>$me->userInfo->about]); ?>
+        <?php
+            $ui = $me->userInfo ?: new \app\models\UserInfo();
+            echo $form->field($epModel, 'website')->textInput(['maxlength'=>100, 'value'=>$ui->website]);
+            echo $form->field($epModel, 'about')->textArea(['maxlength'=>255, 'value'=>$ui->about]);
+        ?>
         <div class="form-group">
             <div class="offset-sm-3 col-sm-9">
             <?php echo Html::submitButton(Yii::t('app', 'Submit'), ['class' => 'btn sf-btn']); ?>

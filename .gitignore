@@ -68,11 +68,26 @@ upload
 /core/config/params.php
 /core/config/plugins.php
 .tmp_run.php
-.gitignore
-README.md
 .vscode/settings.json
 core/.stubs/intelephense.php
+
+# Test data and scripts (DO NOT COMMIT)
 tools/config/test-db.template.php
-tools/tests/e2e.php
-tools/tests/signup_probe.php
-README.md
+tools/tests/
+tools/*.sql
+tools/*.ps1
+tools/quick_setup.ps1
+LOGIN_INFO.md
+DEPLOYMENT_GUIDE.md
+core/runtime/logs/
+*.log
+# .gitignore additions - sensitive files
+
+# Database configuration with credentials
+core/config/db.php
+
+# Test files
+test_*.php
+
+# Code review reports
+CODE_REVIEW_REPORT.md

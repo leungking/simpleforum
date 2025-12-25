@@ -19,9 +19,7 @@ $config = [
     'defaultRoute' => 'topic/index',
     'components' => [
         'request' => [
-            'cookieValidationKey' => 'y4ttk3-dEqFu2',
-            // Allow disabling CSRF for automated E2E tests when SF_E2E=1
-            'enableCsrfValidation' => !(getenv('SF_E2E') === '1'),
+            'cookieValidationKey' => 'Es7Z62-dEqFu2',
         ],
         'i18n' => [
             'translations' => [

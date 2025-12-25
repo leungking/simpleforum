@@ -1,8 +1,8 @@
 <?php
 /**
- * @link https://610000.xyz/
- * @copyright Copyright (c) 2015 SimpleForum
- * @author Leon admin@610000.xyz
+ * Vditor解析器 - 支持Lightbox图片预览
+ * Based on SimpleForum (https://github.com/SimpleForum/SimpleForum)
+ * Modified for https://610000.xyz/
  */
 
 namespace app\plugins\Vditor;
@@ -22,11 +22,35 @@ class VditorParser extends \Parsedown
         }
         $src = ArrayHelper::remove($Inline['element']['attributes'], 'src', '');
         $alt = ArrayHelper::remove($Inline['element']['attributes'], 'alt', '');
-        $Inline['element']['attributes'] += [
-            'src' => Yii::getAlias('@web/static/css/img/load.gif'),
-            'data-original' => Html::encode($src),
-            'alt' => Html::encode($alt),
-            'class' => 'lazy',
+        
+        // Properly handle image URLs - make absolute URLs if relative
+        if (!empty($src) && !preg_match('/^https?:\/\//i', $src)) {
+            // If it's a relative path, make it absolute
+            if (substr($src, 0, 1) === '/') {
+                $src = Yii::$app->request->hostInfo . $src;
+            } else {
+                $src = Yii::$app->request->hostInfo . '/' . $src;
+            }
+        }
+        
+        // 直接将图片包裹在lightbox链接中
+        $Inline['element'] = [
+            'name' => 'a',
+            'attributes' => [
+                'href' => Html::encode($src),
+                'data-lightbox' => 'roadtrip',
+                'data-title' => Html::encode($alt),
+            ],
+            'handler' => 'element',
+            'text' => [
+                'name' => 'img',
+                'attributes' => [
+                    'src' => Yii::getAlias('@web/static/css/img/load.gif'),
+                    'data-original' => Html::encode($src),
+                    'alt' => Html::encode($alt),
+                    'class' => 'lazy',
+                ],
+            ],
         ];
         return $Inline;
     }

@@ -1,8 +1,8 @@
 <?php
 /**
- * @link https://610000.xyz/
- * @copyright Copyright (c) 2015 SimpleForum
- * @author Leon admin@610000.xyz
+ * 邮箱变更管理视图
+ * Based on SimpleForum (https://github.com/SimpleForum/SimpleForum)
+ * Modified for https://610000.xyz/
  */
 
 use yii\helpers\Html;
@@ -58,7 +58,7 @@ $this->title = Yii::t('app/admin', 'Pending Email Changes');
 </div>
 
 <div class="col-lg-4 sf-right">
-<?php echo $this->render('@app/views/admin/setting/_left'); ?>
+<?php echo $this->render('@app/views/common/_admin-right'); ?>
 </div>
 
 </div>

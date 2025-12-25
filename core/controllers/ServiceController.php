@@ -175,11 +175,13 @@ class ServiceController extends AppController
         $model->files = UploadedFile::getInstances($model, 'files');
 
         $result = $model->upload($me->id);
-        if ( $result ) {
-            return $result;
-        } else {
-            return ['jquery-upload-file-error'=> implode('<br />', $model->getFirstErrors()) ];
-        }
+            if ($result) {
+                return $result;
+            } else {
+                \Yii::$app->response->statusCode = 400;
+                $msg = implode('<br />', $model->getFirstErrors());
+                return ['error' => $msg, 'jquery-upload-file-error' => $msg];
+            }
 
     }
 

@@ -53,10 +53,24 @@ if ($model->action === SignupForm::ACTION_AUTH_SIGNUP) {
         </div>
         <br /><strong><?php echo Yii::t('app', 'Create an account'); ?></strong><hr>
 <?php endif; ?>
-            <?php echo $form->field($model, 'name')->textInput(['maxlength'=>40])->hint(Yii::t('app', 'display name')); ?>
-            <?php echo $form->field($model, 'email')->textInput(['maxlength'=>50]); ?>
-            <?php echo $form->field($model, 'password')->passwordInput(['maxlength'=>20]); ?>
-            <?php echo $form->field($model, 'password_repeat')->passwordInput(['maxlength'=>20]); ?>
+            <?php echo $form->field($model, 'email')->textInput(['maxlength'=>50, 'id' => 'signup-email']); ?>
+            
+            <div class="form-group row field-signupform-email_code required">
+                <label class="col-form-label col-sm-3 text-sm-right" for="signupform-email_code"><?php echo Yii::t('app', 'Email Verification Code'); ?> <span class="required">*</span></label>
+                <div class="col-sm-9">
+                    <div class="input-group">
+                        <?php echo Html::activeTextInput($model, 'email_code', ['class' => 'form-control', 'id' => 'signupform-email_code', 'maxlength' => 8]); ?>
+                        <div class="input-group-append">
+                            <button class="btn btn-outline-secondary" type="button" id="send-signup-code-btn"><?php echo Yii::t('app', 'Send Code'); ?></button>
+                        </div>
+                    </div>
+                    <div class="invalid-feedback"></div>
+                    <p class="form-text text-muted"><?php echo Yii::t('app', 'A 6-digit verification code will be sent to your email'); ?></p>
+                </div>
+            </div>
+            
+            <?php echo $form->field($model, 'password')->passwordInput(['maxlength'=>32]); ?>
+            <?php echo $form->field($model, 'password_repeat')->passwordInput(['maxlength'=>32]); ?>
 <?php
 if ( intval(Yii::$app->params['settings']['close_register']) === 2 ) {
     echo $form->field($model, 'invite_code')->textInput(['maxlength'=>6]);
@@ -85,3 +99,69 @@ if ( intval(Yii::$app->params['settings']['close_register']) === 2 ) {
 <!-- sf-right end -->
 
 </div>
+
+<?php
+$sendCodeUrl = \yii\helpers\Url::to(['site/send-signup-code']);
+$msgEnterEmail = Yii::t('app', 'Please enter your email');
+$msgSending = Yii::t('app', 'Sending...');
+$msgSendCode = Yii::t('app', 'Send Code');
+$msgFailed = Yii::t('app', 'Failed to send verification code.');
+
+$this->registerJs(<<<JS
+var countdown = 0;
+var timer = null;
+
+$('#send-signup-code-btn').click(function() {
+    if (countdown > 0) {
+        return;
+    }
+    
+    var email = $('#signup-email').val();
+    if (!email) {
+        alert('{$msgEnterEmail}');
+        return;
+    }
+    
+    var btn = $(this);
+    btn.prop('disabled', true).text('{$msgSending}');
+    
+    $.ajax({
+        url: '{$sendCodeUrl}',
+        type: 'POST',
+        data: {
+            email: email,
+            _csrf: yii.getCsrfToken()
+        },
+        dataType: 'json',
+        success: function(data) {
+            if (data.status === 'success') {
+                countdown = 60;
+                updateButton();
+                timer = setInterval(function() {
+                    countdown--;
+                    if (countdown <= 0) {
+                        clearInterval(timer);
+                        btn.prop('disabled', false).text('{$msgSendCode}');
+                    } else {
+                        updateButton();
+                    }
+                }, 1000);
+                alert(data.msg);
+            } else {
+                btn.prop('disabled', false).text('{$msgSendCode}');
+                alert(data.msg);
+            }
+        },
+        error: function() {
+            btn.prop('disabled', false).text('{$msgSendCode}');
+            alert('{$msgFailed}');
+        }
+    });
+});
+
+function updateButton() {
+    $('#send-signup-code-btn').text(countdown + 's');
+}
+JS
+);
+?>

@@ -18,7 +18,7 @@ final class ArgusManager
     private $auth;
     private $config;
 
-    public function __construct(Auth $auth, Config $config = null)
+    public function __construct(Auth $auth, ?Config $config = null)
     {
         $this->auth = $auth;
         if ($config == null) {

@@ -264,6 +264,7 @@ class UpYun
                 curl_setopt($ch, CURLOPT_INFILE, $body);
                 curl_setopt($ch, CURLOPT_INFILESIZE, $length);
             } else {
+                /** @var int $length */
                 $length = @strlen($body);
                 array_push($_headers, "Content-Length: {$length}");
                 curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
@@ -272,7 +273,7 @@ class UpYun
             array_push($_headers, "Content-Length: {$length}");
         }
 
-        array_push($_headers, "Authorization: {$this->sign($method, $uri, $date, $length)}");
+        array_push($_headers, "Authorization: {$this->sign($method, $uri, $date, (string)$length)}");
         array_push($_headers, "Date: {$date}");
 
         curl_setopt($ch, CURLOPT_HTTPHEADER, $_headers);
@@ -394,7 +395,7 @@ class UpYun
 
 class UpYunException extends \Exception
 {
-    public function __construct($message, $code, Exception $previous = null)
+    public function __construct($message, $code, ?\Exception $previous = null)
     {
         parent::__construct($message, $code);   // For PHP 5.2.x
     }
@@ -407,7 +408,7 @@ class UpYunException extends \Exception
 
 class UpYunAuthorizationException extends UpYunException
 {
-    public function __construct($message, $code = 0, Exception $previous = null)
+    public function __construct($message, $code = 0, ?\Exception $previous = null)
     {
         parent::__construct($message, 401, $previous);
     }
@@ -415,7 +416,7 @@ class UpYunAuthorizationException extends UpYunException
 
 class UpYunForbiddenException extends UpYunException
 {
-    public function __construct($message, $code = 0, Exception $previous = null)
+    public function __construct($message, $code = 0, ?\Exception $previous = null)
     {
         parent::__construct($message, 403, $previous);
     }
@@ -423,7 +424,7 @@ class UpYunForbiddenException extends UpYunException
 
 class UpYunNotFoundException extends UpYunException
 {
-    public function __construct($message, $code = 0, Exception $previous = null)
+    public function __construct($message, $code = 0, ?\Exception $previous = null)
     {
         parent::__construct($message, 404, $previous);
     }
@@ -431,7 +432,7 @@ class UpYunNotFoundException extends UpYunException
 
 class UpYunNotAcceptableException extends UpYunException
 {
-    public function __construct($message, $code = 0, Exception $previous = null)
+    public function __construct($message, $code = 0, ?\Exception $previous = null)
     {
         parent::__construct($message, 406, $previous);
     }
@@ -439,7 +440,7 @@ class UpYunNotAcceptableException extends UpYunException
 
 class UpYunServiceUnavailable extends UpYunException
 {
-    public function __construct($message, $code = 0, Exception $previous = null)
+    public function __construct($message, $code = 0, ?\Exception $previous = null)
     {
         parent::__construct($message, 503, $previous);
     }

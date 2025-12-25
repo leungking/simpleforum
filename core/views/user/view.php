@@ -26,13 +26,14 @@ if (!$isGuest) {
 }
 
 $userOp = [];
+$ui = is_array($user['userInfo']) ? $user['userInfo'] : ['about' => '', 'website' => '', 'follower_count' => 0];
 if (!$isGuest && $me->isAdmin() && $me->id != $user['id']) {
     $userOp['manage'] = Html::a('<i class="fas fa-edit fa-lg" aria-hidden="true"></i>', ['admin/user/info', 'id'=>$user['id']], ['title'=>Yii::t('app', 'Manage')]);
 }
 
 if (!$isGuest && $me->isActive() && $me->id != $user['id']) {
     $userOp['sms'] = Html::a('<i class="fa fa-envelope fa-lg" aria-hidden="true"></i>', ['service/sms', 'uid'=>$user['id']], ['title' => Yii::t('app', 'Send Message')]);
-    $userOp['follow'] = Favorite::checkFollow($me->id, Favorite::TYPE_USER, $user['id'])?Html::a('<i class="fas fa-star fa-lg aria-hidden="true""></i><span class="favorite-num">' . ($user['userInfo']['follower_count']>0?$user['userInfo']['follower_count']:'') . '</span>', null, ['class'=>'favorite', 'title'=>Yii::t('app', 'Unfollow'), 'href' => '#', 'onclick'=> 'return false;', 'params'=>'unfavorite user '. $user['id']]):Html::a('<i class="far fa-star fa-lg" aria-hidden="true"></i><span class="favorite-num">' . ($user['userInfo']['follower_count']>0?$user['userInfo']['follower_count']:'') . '</span>', null, ['class'=>'favorite', 'title'=>Yii::t('app', 'Follow'), 'href' => '#', 'onclick'=> 'return false;', 'params'=>'favorite user '. $user['id']]);
+    $userOp['follow'] = Favorite::checkFollow($me->id, Favorite::TYPE_USER, $user['id'])?Html::a('<i class="fas fa-star fa-lg aria-hidden="true"></i><span class="favorite-num">' . ($ui['follower_count']>0?$ui['follower_count']:'') . '</span>', null, ['class'=>'favorite', 'title'=>Yii::t('app', 'Unfollow'), 'href' => '#', 'onclick'=> 'return false;', 'params'=>'unfavorite user '. $user['id']]):Html::a('<i class="far fa-star fa-lg" aria-hidden="true"></i><span class="favorite-num">' . ($ui['follower_count']>0?$ui['follower_count']:'') . '</span>', null, ['class'=>'favorite', 'title'=>Yii::t('app', 'Follow'), 'href' => '#', 'onclick'=> 'return false;', 'params'=>'favorite user '. $user['id']]);
 }
 
 ?>
@@ -52,10 +53,10 @@ if (!$isGuest && $me->isActive() && $me->id != $user['id']) {
             </p>
         </div>
     </div>
-    <?php if( !empty($user['userInfo']['about']) || !empty($user['userInfo']['website']) ) : ?>
+    <?php if( !empty($ui['about']) || !empty($ui['website']) ) : ?>
     <div class="card-body link-external">
-        <?php echo empty($user['userInfo']['about'])?'':'<p>'.Html::encode($user['userInfo']['about']).'</p>'; ?>
-        <?php echo empty($user['userInfo']['website'])?'':'<i class="fa fa-link" aria-hidden="true"></i> '.Html::a(Html::encode($user['userInfo']['website']), $user['userInfo']['website'], ['target'=>'_blank', 'rel' => 'external']); ?>
+        <?php echo empty($ui['about'])?'':'<p>'.Html::encode($ui['about']).'</p>'; ?>
+        <?php echo empty($ui['website'])?'':'<i class="fa fa-link" aria-hidden="true"></i> '.Html::a(Html::encode($ui['website']), $ui['website'], ['target'=>'_blank', 'rel' => 'external']); ?>
     </div>
     <?php endif ?>
 </div>

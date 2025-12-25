@@ -536,7 +536,8 @@ class User extends ActiveRecord implements IdentityInterface
         if ( !$target->updateCounters(['good' => 1]) ) {
             return ['result'=>0, 'msg'=>Yii::t('app', 'Error occurred')];
         }
-        $result = ['result'=>1, 'count'=>$target->good];
+        // Ensure UI receives the incremented count
+        $result = ['result'=>1, 'count'=>$target->good + 1];
         $history = [
                 'user_id' => $this->id,
                 'action' => $actions[$type],

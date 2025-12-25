@@ -44,7 +44,7 @@ class UserForm extends Model
             [['email', 'name', 'username', 'password'], 'required'],
             ['email', 'email'],
             ['password', 'string', 'length' => [6, 16]],
-            ['name', 'string', 'length' => [4, 40]],
+            ['name', 'string', 'length' => [2, 40]],
             ['name', 'nameFilter'],
             ['email', 'validateEmail'],
         ];

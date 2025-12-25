@@ -11,6 +11,7 @@ use app\models\Topic;
 use app\models\Siteinfo;
 use app\models\Link;
 use app\components\SfHtml;
+use app\models\UserInfo;
 
 $settings = Yii::$app->params['settings'];
 ?>
@@ -20,7 +21,11 @@ $settings = Yii::$app->params['settings'];
 
     /** @var \app\models\User $me */
     $me = Yii::$app->getUser()->getIdentity();
-    $myInfo = $me->userInfo;
+    $myInfo = $me->userInfo ?: new UserInfo([
+      'favorite_node_count' => 0,
+      'favorite_topic_count' => 0,
+      'following_count' => 0,
+    ]);
 ?>
 <ul class="list-group sf-box">
   <li class="list-group-item">
