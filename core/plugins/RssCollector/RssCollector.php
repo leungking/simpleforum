@@ -21,9 +21,9 @@ class RssCollector implements PluginInterface
                 [
                     'label'=>'Enable Auto Collection',
                     'key'=>'auto_collect_enabled',
-                    'type'=>'radio',
+                    'type'=>'select',
                     'value'=>'0',
-                    'options'=>['0'=>'Disabled', '1'=>'Enabled'],
+                    'option'=>['0'=>'Disabled', '1'=>'Enabled'],
                     'description'=>'Automatically collect feeds when users visit the site',
                 ],
                 [
