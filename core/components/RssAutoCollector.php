@@ -79,7 +79,7 @@ class RssAutoCollector implements BootstrapInterface
             }
         } catch (\Exception $e) {
             // 记录错误但不影响正常运行
-            Yii::error('RSS Auto Collector Error: ' . $e->getMessage(), __METHOD__);
+            Yii::error('RSS Auto Collector Error: ' . $e->getMessage() . '\nTrace: ' . $e->getTraceAsString(), __METHOD__);
         }
     }
 
@@ -254,11 +254,15 @@ class RssAutoCollector implements BootstrapInterface
                 if ($topic->validate() && $topicContent->validate()) {
                     $topic->save(false);
                     $topicContent->link('topic', $topic);
+                    Yii::info('Successfully auto-collected: ' . $title . ' from ' . $url, __METHOD__);
+                } else {
+                    $errors = array_merge($topic->getErrors(), $topicContent->getErrors());
+                    Yii::warning('Validation failed for: ' . $title . ' - Errors: ' . json_encode($errors), __METHOD__);
                 }
             }
 
         } catch (\Exception $e) {
-            Yii::error('RSS Feed Collection Error for ' . $url . ': ' . $e->getMessage(), __METHOD__);
+            Yii::error('RSS Feed Collection Error for ' . $url . ': ' . $e->getMessage() . '\nLine: ' . $e->getLine() . '\nFile: ' . $e->getFile(), __METHOD__);
         }
     }
 

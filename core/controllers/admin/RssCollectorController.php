@@ -249,7 +249,9 @@ class RssCollectorController extends CommonController
                 $results[] = "Found $feedCount new items from $url";
 
             } catch (\Exception $e) {
-                $results[] = "Error for $url: " . $e->getMessage();
+                $errorMsg = "Error for $url: " . $e->getMessage();
+                $results[] = $errorMsg;
+                Yii::error($errorMsg . '\nLine: ' . $e->getLine() . '\nFile: ' . $e->getFile() . '\nTrace: ' . $e->getTraceAsString(), __METHOD__);
             }
         }
 
@@ -320,6 +322,10 @@ class RssCollectorController extends CommonController
                     $topic->save(false);
                     $topicContent->link('topic', $topic);
                     $totalCount++;
+                    Yii::info('Successfully collected: ' . $item['title'], __METHOD__);
+                } else {
+                    $errors = array_merge($topic->getErrors(), $topicContent->getErrors());
+                    Yii::warning('Validation failed: ' . $item['title'] . ' - ' . json_encode($errors), __METHOD__);
                 }
             }
         }
