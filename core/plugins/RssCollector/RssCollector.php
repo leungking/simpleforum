@@ -19,11 +19,19 @@ class RssCollector implements PluginInterface
             'version' => '1.0',
             'config' => [
                 [
+                    'label'=>'Enable Auto Collection',
+                    'key'=>'auto_collect_enabled',
+                    'type'=>'radio',
+                    'value'=>'0',
+                    'options'=>['0'=>'Disabled', '1'=>'Enabled'],
+                    'description'=>'Automatically collect feeds when users visit the site',
+                ],
+                [
                     'label'=>'RSS Feeds Configuration',
                     'key'=>'feeds_config',
                     'type'=>'textarea',
-                    'value'=>"https://news.un.org/feed/subscribe/zh/news/topic/climate-change/feed/rss.xml|1|1|气候,变暖",
-                    'description'=>'One feed per line. Format: URL|NodeID|UserID|Keywords(optional, comma separated)',
+                    'value'=>"https://news.un.org/feed/subscribe/zh/news/topic/climate-change/feed/rss.xml|1|1|气候,变暖|60",
+                    'description'=>'One feed per line. Format: URL|NodeID|UserID|Keywords(optional)|Interval(minutes, optional, default 60)',
                 ],
             ],
         ];

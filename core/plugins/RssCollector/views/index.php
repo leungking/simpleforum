@@ -11,6 +11,18 @@ $this->title = 'RSS Collector';
                 <?= Html::a('Admin', ['admin/setting/all']) ?> / <?= Html::a('Plugins', ['admin/plugin/index']) ?> / RSS Collector
             </li>
             <li class="list-group-item sf-box-form">
+                <?php if (!empty($settings['auto_collect_enabled']) && $settings['auto_collect_enabled'] == '1'): ?>
+                <div class="alert alert-success">
+                    <strong>Auto Collection Status: ENABLED</strong><br>
+                    Feeds will be automatically collected when users visit the site based on the configured intervals.
+                </div>
+                <?php else: ?>
+                <div class="alert alert-warning">
+                    <strong>Auto Collection Status: DISABLED</strong><br>
+                    Enable auto collection in plugin settings to collect feeds automatically.
+                </div>
+                <?php endif; ?>
+                
                 <p><strong>Current Feeds Configuration:</strong></p>
                 <table class="table table-bordered table-sm">
                     <thead>
@@ -19,6 +31,7 @@ $this->title = 'RSS Collector';
                             <th>Node ID</th>
                             <th>User ID</th>
                             <th>Keywords</th>
+                            <th>Interval (min)</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -30,14 +43,15 @@ $this->title = 'RSS Collector';
                             <td><?= Html::encode($parts[0]) ?></td>
                             <td><?= Html::encode($parts[1]) ?></td>
                             <td><?= Html::encode($parts[2]) ?></td>
-                            <td><?= isset($parts[3]) ? Html::encode($parts[3]) : '<span class="text-muted">All</span>' ?></td>
+                            <td><?= isset($parts[3]) && !empty(trim($parts[3])) ? Html::encode($parts[3]) : '<span class="text-muted">All</span>' ?></td>
+                            <td><?= isset($parts[4]) && !empty(trim($parts[4])) ? Html::encode($parts[4]) : '<span class="text-muted">60</span>' ?></td>
                         </tr>
                         <?php endforeach; ?>
                     </tbody>
                 </table>
                 <p><?= Html::a('Change Configuration', ['admin/plugin/settings', 'pid' => 'RssCollector'], ['class' => 'btn btn-secondary']) ?></p>
                 <hr>
-                <button id="btn-collect" class="btn btn-primary">Collect All Feeds</button>
+                <button id="btn-collect" class="btn btn-primary">Collect All Feeds Manually</button>
                 <div id="collect-result" style="margin-top: 20px;"></div>
             </li>
         </ul>
@@ -56,7 +70,7 @@ $('#btn-collect').click(function() {
     $('#collect-result').html('<div class="alert alert-info">Collecting content, please wait...</div>');
     
     $.getJSON('$collectUrl', function(data) {
-        btn.prop('disabled', false).text('Collect Now');
+        btn.prop('disabled', false).text('Collect All Feeds Manually');
         var alertClass = 'alert-info';
         if (data.status === 'success') alertClass = 'alert-success';
         if (data.status === 'error') alertClass = 'alert-danger';
@@ -64,7 +78,7 @@ $('#btn-collect').click(function() {
         
         $('#collect-result').html('<div class="alert ' + alertClass + '">' + data.message + '</div>');
     }).fail(function() {
-        btn.prop('disabled', false).text('Collect Now');
+        btn.prop('disabled', false).text('Collect All Feeds Manually');
         $('#collect-result').html('<div class="alert alert-danger">An error occurred during collection.</div>');
     });
 });

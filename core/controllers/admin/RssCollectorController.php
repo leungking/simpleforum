@@ -154,11 +154,20 @@ class RssCollectorController extends CommonController
                             $media = $this->dedupeMedia($media);
                         }
 
+                        // Extract publish date
+                        $pubDate = null;
+                        if (isset($item->pubDate)) {
+                            $pubDate = strtotime((string)$item->pubDate);
+                        } elseif (isset($item->date)) {
+                            $pubDate = strtotime((string)$item->date);
+                        }
+
                         $items[] = [
                             'title' => (string)$item->title,
                             'link' => (string)$item->link,
                             'description' => $description,
                             'media' => $media,
+                            'pubDate' => $pubDate,
                         ];
                     }
                 } elseif (isset($xml->entry)) { // Atom
@@ -176,11 +185,20 @@ class RssCollectorController extends CommonController
                             $media = $this->dedupeMedia($media);
                         }
 
+                        // Extract publish date for Atom
+                        $pubDate = null;
+                        if (isset($entry->published)) {
+                            $pubDate = strtotime((string)$entry->published);
+                        } elseif (isset($entry->updated)) {
+                            $pubDate = strtotime((string)$entry->updated);
+                        }
+
                         $items[] = [
                             'title' => (string)$entry->title,
                             'link' => $link,
                             'description' => $description,
                             'media' => $media,
+                            'pubDate' => $pubDate,
                         ];
                     }
                 }
@@ -224,6 +242,7 @@ class RssCollectorController extends CommonController
                         'title' => $title,
                         'description' => $description, // Use full description/content
                         'media' => $item['media'],
+                        'pubDate' => isset($item['pubDate']) ? $item['pubDate'] : null,
                     ];
                     $feedCount++;
                 }
@@ -247,6 +266,12 @@ class RssCollectorController extends CommonController
                     'user_id' => $item['user_id'],
                     'title' => $item['title'],
                 ]);
+                
+                // Use original publish date if available
+                if (!empty($item['pubDate'])) {
+                    $topic->created_at = $item['pubDate'];
+                    $topic->updated_at = $item['pubDate'];
+                }
                 
                 $topic->tags = $this->extractKeywords($item['title'], $item['description']);
 
