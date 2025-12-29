@@ -53,6 +53,17 @@ class Topic extends ActiveRecord
                     ActiveRecord::EVENT_BEFORE_INSERT => ['created_at', 'updated_at', 'replied_at'],
                     ActiveRecord::EVENT_BEFORE_UPDATE => ['updated_at'],
                 ],
+                // Ensure preset values (e.g., from RSS/Atom) are respected on insert
+                // and updated_at uses current time on updates.
+                'value' => function($event) {
+                    if ($event->name === ActiveRecord::EVENT_BEFORE_INSERT) {
+                        // If created_at is preset, use it; otherwise, use current time.
+                        return $this->created_at ?? time();
+                    }
+                    // For updates, always use current time for updated_at
+                    return time();
+                },
+                'skipUpdateOnClean' => true,
             ],
         ];
     }

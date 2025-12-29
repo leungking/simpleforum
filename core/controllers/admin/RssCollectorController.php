@@ -260,8 +260,18 @@ class RssCollectorController extends CommonController
             $editor = $appSettings['editor'];
             $isMarkdown = ($editor == 'SmdEditor' || $editor == 'Vditor');
 
-            shuffle($allItems);
-                    foreach ($allItems as $item) {
+            // Preserve feed order and assign sequential fallback timestamps for items without dates
+            $fallbackBase = time();
+            $fallbackOffset = 0;
+            foreach ($allItems as &$it) {
+                if (empty($it['pubDate'])) {
+                    $it['pubDate'] = $fallbackBase + $fallbackOffset;
+                    $fallbackOffset++;
+                }
+            }
+            unset($it);
+
+            foreach ($allItems as $item) {
                 $topic = new Topic([
                     'scenario' => Topic::SCENARIO_ADD,
                     'node_id' => $item['node_id'],
@@ -269,7 +279,7 @@ class RssCollectorController extends CommonController
                     'title' => $item['title'],
                 ]);
                 
-                // Use original publish date if available
+                // Use original or fallback publish date
                 if (!empty($item['pubDate'])) {
                     $topic->created_at = $item['pubDate'];
                     $topic->updated_at = $item['pubDate'];

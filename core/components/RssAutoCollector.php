@@ -201,6 +201,17 @@ class RssAutoCollector implements BootstrapInterface
             $editor = isset($appSettings['editor']) ? $appSettings['editor'] : (Yii::$app->params['settings']['editor'] ?? '');
             $isMarkdown = ($editor == 'SmdEditor' || $editor == 'Vditor');
 
+            // Assign sequential fallback timestamps for items without dates, preserving order
+            $fallbackBase = time();
+            $fallbackOffset = 0;
+            foreach ($items as &$it) {
+                if (empty($it['pubDate'])) {
+                    $it['pubDate'] = $fallbackBase + $fallbackOffset;
+                    $fallbackOffset++;
+                }
+            }
+            unset($it);
+
             foreach ($items as $item) {
                 $title = trim($item['title']);
                 $description = trim($item['description']);
@@ -232,7 +243,7 @@ class RssAutoCollector implements BootstrapInterface
                     'title' => $title,
                 ]);
                 
-                // 使用原始发布日期
+                // 使用原始或回退发布日期
                 if (!empty($item['pubDate'])) {
                     $topic->created_at = $item['pubDate'];
                     $topic->updated_at = $item['pubDate'];
